@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<header th:replace="fragments/header :: header(${activePage})"></header>
+
+
+
+<div class="container">
+    <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
+
+    <div class="main-genre-music">
+
+        <div th:each="track : ${trackList}" class="container-sound" th:id="'track-' + ${track.id}">
+            <div class="pause-button" style="display:none;">
+                <div class="rectangle"></div>
+                <div class="rectangle"></div>
+            </div>
+            <div class="play-button">
+                <div class="triangle"></div>
+            </div>
+
+            <img th:src="@{${track.imageUrl}}" alt="Обложка трека" class="image-sound">
+
+            <div class="all-duration">
+                <div class="container-duration">
+                    <span class="time current-time">0:00</span>
+                    <div class="main-pain">
+                        <div class="text" th:text="${track.artist} + ' - ' + ${track.trackName}">Артист - Название трека</div>
+                        <audio class="audio-player" th:src="@{${track.trackUrl}}" preload="metadata"></audio>
+                        <div class="progress-container">
+                            <div class="progress-bar"></div>
+                            <div class="progress-thumb"></div>
+                        </div>
+                    </div>
+                    <span class = "time duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <div class="like-container" th:id="'like-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
+                    <button type="button"
+                            class="heart-icon"
+                            th:classappend="(${likedTrackIds.contains(track.id)} ? 'liked' : '') + ' ' + (${!loggedIn} ? 'login-required' : '')"
+                            th:onclick="${loggedIn} ? 'likeTrack(${track.id})' : 'showLoginRequired(${track.id})'">
+                    </button>
+
+                    <div th:if="${!loggedIn}" class="login-required-popup like-required-popup"
+                         th:id="'like-required-message-' + ${track.id}" style="display: none;">
+                        Для лайка необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
+                    </div>
+
+                    <input type="hidden" name="user_id" th:value="${user?.id}">
+                    <input type="hidden" name="track_id" th:value="${track.id}">
+                </div>
+
+                <div class="download-container" th:id="'download-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
+
+                    <button type="button"
+                            class="button-load"
+                            th:classappend="${!loggedIn} ? 'login-required' : ''"
+                            th:onclick="${loggedIn} ? 'downloadTrack(${track.id})' : 'showDownloadRequired(${track.id})'">
+                        <div class="arrow-down"></div>
+                        <div class="line"></div>
+                    </button>
+
+                    <div th:if="${!loggedIn}" class="login-required-popup download-required-popup"
+                         th:id="'download-required-message-' + ${track.id}" style="display: none;">
+                        Для скачивания необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(trackList)}">
+            <p>Треки не найдены.</p>
+        </div>
+
+    </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

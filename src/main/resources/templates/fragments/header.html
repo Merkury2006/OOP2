@@ -1,0 +1,43 @@
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" th:href="@{/static/favicon.ico}" type="image/x-icon">
+    <link rel="icon" type="image/png" th:href="@{/static/favicon-32x32.png}" sizes="32x32">
+    <link rel="icon" type="image/png" th:href="@{/favicon-16x16.png}" sizes="16x16">
+    <link rel="stylesheet" th:href="@{/static/Styles/stylesPage.css}">
+    <link rel="stylesheet" th:href="@{/static/Styles/styleIcons.css}">
+    <link rel="stylesheet" th:href="@{/static/Styles/styleGenreMusic.css}">
+    <link rel="stylesheet" th:href="@{/static/Styles/fonts.css}">
+    <link rel="stylesheet" th:href="@{/static/Styles/aboutUs.css}">
+    <link rel="stylesheet" th:href="@{/static/Styles/styleAddTrack.css}">
+
+</head>
+
+<header th:fragment="header(activePage)">
+    <div class="head-items">
+        <img class="logo-site" th:src="@{/static/Images/logo-site.png}" alt="Лого">
+        <a th:href="@{/}" th:classappend="${activePage == 'index' ? 'head-item-active' : 'head-item'}">Главная</a>
+        <a th:href="@{/my-music}" th:classappend="${activePage == 'my-music' ? 'head-item-active' : 'head-item'}">Моя музыка</a>
+        <a th:href="@{/about}" th:classappend="${activePage == 'aboutUs' ? 'head-item-active' : 'head-item'}">О нас</a>
+        <a th:href="@{/upload}" th:classappend="${activePage == 'upload' ? 'head-item-active' : 'head-item'}">Добавить музыку</a>
+    </div>
+
+    <div class="theme-switch">
+        <img th:src="@{/static/Images/social/lightTheme.png}" id="light-theme-button" class="active" alt="светлая тема">
+        <img th:src="@{/static/Images/social/darkTheme.png}" id="dark-theme-button" alt="темная тема">
+    </div>
+
+    <div class="user-info" th:classappend="${loggedIn} ? 'logged-in' : ''" id="user-info">
+
+        <div th:if="${loggedIn}" class="welcome-message" id="welcome-message">
+            <span id="user-nickname" th:text="${user.username}">User</span>
+            <a th:href="@{/logout}" class="link" id="logout-link">Выход</a>
+        </div>
+
+        <div th:unless="${loggedIn}" class="registration-links" id="registration-links">
+            <a th:href="@{/register}" class="registration-item">Регистрация</a>
+            <a th:href="@{/login}" class="login-item">Вход</a>
+        </div>
+    </div>
+
+</header>

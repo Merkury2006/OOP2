@@ -1,0 +1,11 @@
+<div th:fragment="sidebar(activePage)" class="sidebar-left">
+    <a th:classappend="${activePage == 'pop' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/pop}">Поп-музыка</a>
+    <a th:classappend="${activePage == 'rock' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/rock}">Рок-музыка</a>
+    <a th:classappend="${activePage == 'rep' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/rep}">Рэп-музыка</a>
+    <a th:classappend="${activePage == 'hip-hop' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/hip-hop}">Хип-хоп</a>
+    <a th:classappend="${activePage == 'electronic' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/electronic}">Электронная музыка</a>
+    <a th:classappend="${activePage == 'classic' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/classic}">Классика</a>
+    <a th:classappend="${activePage == 'fonk' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/fonk}">Фонк</a>
+    <a th:classappend="${activePage == 'jazz' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/jazz}">Джаз</a>
+    <a th:classappend="${activePage == 'metall' ? 'sidebar-item-active' : 'sidebar-item'}" th:href="@{/pagesMusic/metall}">Металл</a>
+</div>
