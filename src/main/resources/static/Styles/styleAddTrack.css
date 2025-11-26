@@ -1,0 +1,498 @@
+.track-form {
+    width: 80%;
+    max-width: none;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 20px;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.label {
+    display: block;
+    margin-bottom: 5px;
+    font-family: "MyFont", serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 50px;
+    text-align: center;
+}
+
+label {
+    display: inline-block;
+    width: 70%; 
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    font-family: "MyFont2", serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 20px;
+}
+
+input[type="text"],
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 16px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.error-message {
+    color: #d32f2f;
+    font-size: 0.85em;
+    display: block;
+    margin-top: 4px;
+}
+
+.button-add-new-track {
+    display: block;
+    margin: auto;
+    align-items: center;
+    width: 27%;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    letter-spacing: 0.5px;
+    font-family: "MyFont2", serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 25px;
+}
+
+.file-input-container,
+.image-input-container {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.file-upload,
+.image-upload {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: auto;
+  height: auto;
+}
+
+.file-upload-btn,
+.image-upload-btn {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  letter-spacing: 0.5px;
+  text-align: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  width: 20%;
+}
+
+.file-upload-btn:hover,
+.image-upload-btn:hover {
+  cursor: pointer;
+}
+
+input[type="file"] {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  position: absolute;
+  z-index: -1;
+
+}
+
+.file-name {
+  flex-grow: 1;
+  display: block;
+  margin-left: 10px;
+  font-size: 0.9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.genre-label {
+    white-space: nowrap;
+    margin-right: 10px;
+    width: 180px;
+    flex-shrink: 0;
+}
+
+.genre-select-container {
+    flex-grow: 1;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+select:focus {
+    outline: none;
+}
+
+#notification-container {
+    position: fixed;
+    top: -200px;
+    left: 150px;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.notification {
+    position: relative;
+    padding: 30px 50px;
+    border-radius: 15px;
+    font-size: 24px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+    width: fit-content;
+    max-width: 80%;
+    pointer-events: auto;
+    text-align: center;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification-icon {
+    font-weight: bold;
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    flex: 1;
+    white-space: nowrap;
+}
+
+.trash-icon {
+    display: inline-block;
+    width: 40px;
+    height: 42px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23888' viewBox='0 0 448 512'%3E%3C!--Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--%3E%3Cpath d='M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+}
+
+.trash-icon:hover {
+    opacity: 0.7;
+}
+
+.track-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0; 
+    }
+    100% {
+        opacity: 1; 
+    }
+}
+
+.noTracksMessage {
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 20px;
+    font-family: "MyFont2", serif;
+    font-weight: 500;
+    font-style: normal;
+    font-size: 30px;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    width: 60%;
+    
+}
+
+/* Выбор темы*/
+/*Светлая тема*/
+body.light-theme .track-form {
+    border: 1px solid #ddd;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.781);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .label {
+    color: #8d0ee2;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.light-theme .form-group {
+    color: #7c1dbb;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.light-theme input[type="text"],
+body.light-theme input[type="file"] {
+    border: 2px solid #ddd;
+    background-color: #f9f9f9;
+    color: #333;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme input[type="text"]:focus,
+body.light-theme input[type="file"]:focus {
+    border-color: #a076f3;
+    outline: none;
+    box-shadow: 0 0 8px rgba(160, 118, 243, 0.4);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .error-message {
+    color: #d32f2f;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .button-add-new-track {
+    background-color: #571e99;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .button-add-new-track:hover {
+    background-color: #7b43a5;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .file-upload-btn,
+body.light-theme .image-upload-btn {
+  background-color: #571e99;
+  color: white;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .file-upload-btn:hover,
+body.light-theme .image-upload-btn:hover {
+  background-color: #7b43a5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.light-theme .file-name {
+    color: #555;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme select {
+    border: 1px solid #af17bd;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme select:focus {
+    border-color: #571e99;
+    box-shadow: 0 0 5px rgba(87, 30, 153, 0.5); 
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .notification {
+    color: white;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #8A2BE2 0%, #6A0DAD 100%);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .notification-text {
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .trash-icon {
+    color: gray;
+    background-color: white;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.light-theme .noTracksMessage {
+    background-color: #ffffff;
+    border: 2px solid #ccc;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.664);
+    color: rgba(160, 19, 179, 0.918);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/*Темная тема*/
+body.dark-theme .track-form {
+    border: 1px solid #000000;
+    background-color: #303030;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.863);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .label {
+    color: #ff00d4;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.dark-theme .form-group {
+    color: #f10ecc;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.dark-theme input[type="text"],
+body.dark-theme input[type="file"] {
+    border: 1px solid #000000;
+    background-color: #585858;
+    color: #ffffff;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme input[type="text"]:focus,
+body.dark-theme input[type="file"]:focus {
+    border-color: #a10a88b2;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.699);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .error-message {
+    color: #d41414;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .button-add-new-track {
+    background-color: #f10ecc;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.753);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .button-add-new-track:hover {
+    background-color: #db006e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.753);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .file-upload-btn,
+body.dark-theme .image-upload-btn {
+  background-color: #f10ecc;
+  color: white;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.753);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .file-upload-btn:hover,
+body.dark-theme .image-upload-btn:hover {
+  background-color: #db006e;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.753);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+
+body.dark-theme .file-name {
+    color: #ffffff;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme select {
+    border: 1px solid #b10d95c7;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme select:focus {
+    border-color: #d308b1c7;
+    box-shadow: 0 0 5px rgba(87, 30, 153, 0.5); 
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .genre-select-container select {
+    border: 1px solid #000000;
+    background-color: #585858;
+    color: #ffffff;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 20px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5' viewBox='0 0 10 5'%3E%3Cpath fill='%23333' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E"); /* Добавьте свою стрелочку */
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 10px;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .genre-select-container select:hover {
+    border-color: #000000;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .genre-select-container select:focus {
+    outline: none;
+    border-color: #000000;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .notification {
+    color: white;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    background:#9e0785f3;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .notification-text {
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .trash-icon {
+    color: gray;
+    background-color: rgb(34, 33, 33);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-theme .noTracksMessage {
+    background-color: #313030;
+    border: 2px solid #3a3939;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.664);
+    color: rgb(119, 0, 255);
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
