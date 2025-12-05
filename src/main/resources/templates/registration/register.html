@@ -31,14 +31,23 @@
         .login-form h2 {
             color: #800080;
             text-align: center;
+            margin-bottom: 20px;
         }
 
         .login-form input {
-            width: calc(100% - 20px);
+            width: 100%; /* изменено с calc(100% - 20px) */
             padding: 10px;
-            margin: 10px 0;
+            margin: 5px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-sizing: border-box; /* важно! */
+        }
+
+        /* Стиль для полей с ошибками */
+        .field-error {
+            border-color: #ff4444 !important;
+            border-width: 2px !important;
+            background-color: #fff8f8;
         }
 
         .login-form input[type="submit"] {
@@ -47,31 +56,63 @@
             color: #fff;
             cursor: pointer;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
         }
 
+        .login-form input[type="submit"]:hover {
+            background-color: #6a006a;
+        }
+
+        /* Общие сообщения */
         .error-message {
-            color: red;
+            background-color: #ffe6e6;
+            color: #cc0000;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ff9999;
+            width: 100%;
             text-align: center;
-            display: block;
-            margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         .success-message {
-            background-color: #51cf66;
-            color: white;
+            background-color: #e6ffe6;
+            color: #006600;
             padding: 10px;
             border-radius: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #99ff99;
             width: 100%;
             text-align: center;
-            display: block;
+            box-sizing: border-box;
         }
 
+        /* Группы форм */
+        .form-group {
+            margin-bottom: 15px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Текст ошибок под полями */
+        .error-text {
+            color: #ff4444;
+            font-size: 13px;
+            margin-top: 3px;
+            padding-left: 3px;
+            min-height: 18px; /* чтобы сохранялось место */
+        }
+
+        /* Ссылки */
         .link {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
+            width: 100%;
         }
 
         .link a {
@@ -88,10 +129,39 @@
             color: #fff;
             border: none;
             margin: 5px;
-            padding: 5px;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            width: 40%;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .in:hover {
+            background-color: #6a006a;
+        }
+
+        /* Фокусировка на полях */
+        .login-form input:focus {
+            outline: none;
+            border-color: #800080;
+            box-shadow: 0 0 0 2px rgba(128, 0, 128, 0.2);
+        }
+
+        .field-error:focus {
+            border-color: #ff4444;
+            box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2);
+        }
+
+        /* Для мобильных устройств */
+        @media (max-width: 400px) {
+            .login-form {
+                width: 90%;
+                padding: 15px;
+            }
+
+            .login-form h2 {
+                font-size: 1.3em;
+            }
         }
     </style>
 </head>
@@ -100,25 +170,64 @@
 <div class="login-form">
     <h2>Регистрация</h2>
 
+    <!-- Общая ошибка (например, email уже занят) -->
     <div th:if="${error}" class="error-message">
         <span th:text="${error}"></span>
     </div>
 
-    <div th:if="${message}" th:class="${messageType == 'success'} ? 'success-message' : 'error-message'">
+    <!-- Сообщение об успехе -->
+    <div th:if="${message}" class="success-message">
         <span th:text="${message}"></span>
     </div>
 
     <form th:action="@{/register}" th:object="${user}" method="post">
-        <input type="text" th:field="*{username}" placeholder="Имя пользователя" required>
-        <input type="email" th:field="*{email}" placeholder="Электронная почта" required>
-        <input type="password" th:field="*{password}" placeholder="Пароль" required>
+
+        <!-- Username с ошибками -->
+        <div class="form-group">
+            <input type="text" th:field="*{username}"
+                   placeholder="Имя пользователя"
+                   required
+                   th:class="${#fields.hasErrors('username')} ? 'field-error' : ''">
+
+            <!-- Ошибка валидации для username -->
+            <div th:if="${#fields.hasErrors('username')}" class="error-text">
+                <span th:errors="*{username}"></span>
+            </div>
+        </div>
+
+        <!-- Email с ошибками -->
+        <div class="form-group">
+            <input type="email" th:field="*{email}"
+                   placeholder="Электронная почта"
+                   required
+                   th:class="${#fields.hasErrors('email')} ? 'field-error' : ''">
+
+            <!-- Ошибка валидации для email -->
+            <div th:if="${#fields.hasErrors('email')}" class="error-text">
+                <span th:errors="*{email}"></span>
+            </div>
+        </div>
+
+        <!-- Password с ошибками -->
+        <div class="form-group">
+            <input type="password" th:field="*{password}"
+                   placeholder="Пароль"
+                   required
+                   th:class="${#fields.hasErrors('password')} ? 'field-error' : ''">
+
+            <!-- Ошибка валидации для password -->
+            <div th:if="${#fields.hasErrors('password')}" class="error-text">
+                <span th:errors="*{password}"></span>
+            </div>
+        </div>
+
+        <!-- CSRF токен -->
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
         <input type="submit" value="Зарегистрироваться">
     </form>
 
     <div class="link">
-        <p>Уже зарегистрированы? <a th:href="@{/login}"><button class="in">Войти</button></a></p>
+        <p>Уже зарегистрированы? <a th:href="@{/login}"><button type="button" class="in">Войти</button></a></p>
     </div>
 </div>
-
-</body>
-</html>

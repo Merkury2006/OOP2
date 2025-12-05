@@ -90,6 +90,7 @@ header {
     text-align: right;
 }
 
+/* ОРИГИНАЛЬНЫЙ СТИЛЬ ДЛЯ ССЫЛКИ LOGOUT */
 #logout-link {
     text-decoration: none;
     border-radius: 3px;
@@ -99,6 +100,33 @@ header {
     display: block;
     text-align: right;
     font-size: 14px;
+    color: inherit; /* Наследует цвет от родителя */
+}
+
+/* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ КНОПКИ LOGOUT */
+#logout-link {
+    /* Делаем кнопку похожей на ссылку */
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit; /* Наследует шрифт от родителя */
+
+    /* Твои оригинальные стили сохраняются */
+    text-decoration: none;
+    border-radius: 3px;
+    padding: 5px;
+    padding-top: 0px;
+    display: block;
+    text-align: right;
+    font-size: 14px;
+    color: inherit;
+    transition: background-color 0.3s ease;
+}
+
+/* Ховер эффект для кнопки */
+#logout-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 #user-nickname {
@@ -108,11 +136,6 @@ header {
     font-weight: 500;
     font-style: normal;
     font-size: 30px;
-}
-
-#logout-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
 }
 
 .user-info:not(.logged-in) .registration-links {

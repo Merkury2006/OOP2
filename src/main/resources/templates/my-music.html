@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
-<head th:replace="fragments/header :: head"></head>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" >
+<head th:replace="fragments/header :: head">
+</head>
 <body>
+
 
 <header th:replace="fragments/header :: header(${activePage})"></header>
 
 <div class="container">
     <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
 
-    <div class="main-genre-music">
+    <div class="my-music-container">
+        <div th:class="${#lists.isEmpty(trackLikedIds)} ? 'not-logged-in-message no-tracks-message' : 'not-logged-in-message no-tracks-message hidden'">
+            <p>У вас нет лайкнутых треков</p>
+        </div>
 
         <div th:each="track : ${trackList}" class="container-sound" th:id="'track-' + ${track.id}">
             <div class="pause-button" style="display:none;">
@@ -41,43 +45,46 @@
                 <div class="like-container" th:id="'like-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
                     <button type="button"
                             class="heart-icon"
-                            th:classappend="(${likedTrackIds != null and likedTrackIds.contains(track.id)} ? 'liked' : '') + ' ' + (!${#authorization.expression('isAuthenticated()')} ? 'login-required' : '')"
-                            th:onclick="${#authorization.expression('isAuthenticated()')} ? 'likeTrack(${track.id})' : 'showLoginRequired(${track.id})'">
+                            th:classappend="(${likedTrackIds.contains(track.id)} ? 'liked' : '') + ' ' + (${!loggedIn} ? 'login-required' : '')"
+                            th:onclick="${loggedIn} ? 'likeTrack(${track.id})' : 'showLoginRequired(${track.id})'">
                     </button>
 
-                    <div sec:authorize="!isAuthenticated()" class="login-required-popup like-required-popup"
+                    <div th:if="${!loggedIn}" class="login-required-popup like-required-popup"
                          th:id="'like-required-message-' + ${track.id}" style="display: none;">
                         Для лайка необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
                     </div>
 
-                    <div sec:authorize="isAuthenticated()">
-                        <input type="hidden" name="user_id" th:value="${#authentication.name}">
-                        <input type="hidden" name="track_id" th:value="${track.id}">
-                    </div>
+                    <input type="hidden" name="user_id" th:value="${user?.id}">
+                    <input type="hidden" name="track_id" th:value="${track.id}">
                 </div>
 
                 <div class="download-container" th:id="'download-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
+
                     <button type="button"
                             class="button-load"
-                            th:classappend="${not #authorization.expression('isAuthenticated()')} ? 'login-required' : ''"
-                            th:onclick="${#authorization.expression('isAuthenticated()')} ? 'downloadTrack(${track.id})' : 'showDownloadRequired(${track.id})'">
+                            th:classappend="${!loggedIn} ? 'login-required' : ''"
+                            th:onclick="${loggedIn} ? 'downloadTrack(${track.id})' : 'showDownloadRequired(${track.id})'">
                         <div class="arrow-down"></div>
                         <div class="line"></div>
                     </button>
 
-                    <div sec:authorize="!isAuthenticated()" class="login-required-popup download-required-popup"
+                    <div th:if="${!loggedIn}" class="login-required-popup download-required-popup"
                          th:id="'download-required-message-' + ${track.id}" style="display: none;">
                         Для скачивания необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
                     </div>
+
                 </div>
             </div>
         </div>
-
-        <div th:if="${#lists.isEmpty(trackList)}">
-            <p>Треки не найдены.</p>
+        <div class='not-logged-in-message'>
+            <p>Чтобы добавлять треки в свою музыку, вам нужно <a href='../registration/login.php'>войти</a> или <a href='../registration/register.php'>зарегистрироваться</a></p>
         </div>
-
     </div>
+
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>
+
+
+</body>
+</html>

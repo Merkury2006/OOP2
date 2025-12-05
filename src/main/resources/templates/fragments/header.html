@@ -1,4 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head th:fragment="head">
+    <meta th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" th:href="@{/static/favicon.ico}" type="image/x-icon">
@@ -27,14 +32,19 @@
         <img th:src="@{/static/Images/social/darkTheme.png}" id="dark-theme-button" alt="темная тема">
     </div>
 
-    <div class="user-info" th:classappend="${loggedIn} ? 'logged-in' : ''" id="user-info">
+    <div class="user-info"
+         th:classappend="${#authorization.expression('isAuthenticated()')} ? 'logged-in' : ''"
+         id="user-info">
 
-        <div th:if="${loggedIn}" class="welcome-message" id="welcome-message">
-            <span id="user-nickname" th:text="${user.username}">User</span>
-            <a th:href="@{/logout}" class="link" id="logout-link">Выход</a>
+        <div sec:authorize="isAuthenticated()" class="welcome-message" id="welcome-message">
+            <span id="user-nickname" th:text="${username}"></span>
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="link" id="logout-link">Выход</button>
+            </form>
         </div>
 
-        <div th:unless="${loggedIn}" class="registration-links" id="registration-links">
+        <div sec:authorize="!isAuthenticated()" class="registration-links" id="registration-links">
             <a th:href="@{/register}" class="registration-item">Регистрация</a>
             <a th:href="@{/login}" class="login-item">Вход</a>
         </div>

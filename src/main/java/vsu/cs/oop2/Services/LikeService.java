@@ -16,4 +16,5 @@ public class LikeService {
     public List<Long> getLikedTrackIds(Long id) {
         return likeRepository.findLikedTrackByUserId(id);
     }
+
 }

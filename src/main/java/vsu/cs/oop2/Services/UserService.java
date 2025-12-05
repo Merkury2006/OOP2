@@ -2,18 +2,21 @@ package vsu.cs.oop2.Services;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vsu.cs.oop2.DTO.UserLoginDTO;
 import vsu.cs.oop2.DTO.UserRegistrationDTO;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Repository.UserRepository;
 
-import java.util.Optional;
+import java.util.Collections;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
 
@@ -21,12 +24,15 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
 
     public User getUserByUsername(String username) {
-        return userRepository.getUserByUsername(username);
+        return userRepository.getUserByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+    }
+    public User getUserByEmail(String email) {
+        return userRepository.getUserByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
     }
 
     public User registerUser(UserRegistrationDTO userDTO) {
         if (userRepository.getUserByEmail(userDTO.getEmail()).isPresent()) {
-            throw new RuntimeException("Электронная почта уже существует");
+            throw new IllegalArgumentException("Электронная почта уже существует");
         }
         User user = new User();
         user.setUsername(userDTO.getUsername());
@@ -36,17 +42,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User loginUser(UserLoginDTO userDTO) {
-        Optional<User> user = userRepository.getUserByEmail(userDTO.getEmail());
-
-        if (user.isEmpty()) {
-            throw new RuntimeException("Пользователя с таким email не существует");
-        }
-
-        if (!passwordEncoder.matches(userDTO.getPassword(), user.get().getPassword())) {
-            throw new RuntimeException("Неверный пароль");
-        }
-
-        return user.get();
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = getUserByEmail(email);
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+        );
     }
 }
