@@ -19,4 +19,10 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     @Query("SELECT l.track.id FROM Like l WHERE l.user.id = :userId")
     List<Long> findLikedTrackByUserId(@Param("userId") Long userId);
+
+    List<Like> user(User user);
+
+    void deleteLikeByUser_IdAndTrack_Id(Long userId, Long trackId);
+
+    boolean existsLikeByUser_Id_AndTrack_Id(@Param("userId") Long userId, @Param("trackId") Long trackId);
 }

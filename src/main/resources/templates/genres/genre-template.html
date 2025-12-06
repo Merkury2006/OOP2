@@ -33,41 +33,55 @@
                             <div class="progress-thumb"></div>
                         </div>
                     </div>
-                    <span class = "time duration">0:00</span>
+                    <span class="time duration">0:00</span>
                 </div>
             </div>
 
             <div class="button-container">
-                <div class="like-container" th:id="'like-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
+                <div class="like-container" th:id="'like-form-' + ${track.id}" th:data-track-id="${track.id}">
                     <button type="button"
                             class="heart-icon"
-                            th:classappend="(${likedTrackIds != null and likedTrackIds.contains(track.id)} ? 'liked' : '') + ' ' + (!${#authorization.expression('isAuthenticated()')} ? 'login-required' : '')"
-                            th:onclick="${#authorization.expression('isAuthenticated()')} ? 'likeTrack(${track.id})' : 'showLoginRequired(${track.id})'">
+                            th:classappend="(${likedTrackIds != null and likedTrackIds.contains(track.id)} ? 'liked' : '') +
+                       (${not #authorization.expression('isAuthenticated()')} ? ' login-required' : '')">
+                        <i th:class="${likedTrackIds != null and likedTrackIds.contains(track.id)} ?
+                 'fas fa-heart' : 'far fa-heart'"></i>
                     </button>
 
-                    <div sec:authorize="!isAuthenticated()" class="login-required-popup like-required-popup"
-                         th:id="'like-required-message-' + ${track.id}" style="display: none;">
-                        Для лайка необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
-                    </div>
-
-                    <div sec:authorize="isAuthenticated()">
-                        <input type="hidden" name="user_id" th:value="${#authentication.name}">
-                        <input type="hidden" name="track_id" th:value="${track.id}">
+                    <!-- Popup для лайков -->
+                    <div sec:authorize="!isAuthenticated()"
+                         class="login-popup like-popup"
+                         th:id="'like-popup-' + ${track.id}"
+                         style="display: none;">
+                        <div class="popup-content">
+                            <p>Для лайка необходимо
+                                <a th:href="@{/login}">войти</a>
+                                или
+                                <a th:href="@{/register}">зарегистрироваться</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="download-container" th:id="'download-form-' + ${track.id}" th:attr="data-track-id=${track.id}">
+                <div class="download-container" th:id="'download-form-' + ${track.id}" th:data-track-id="${track.id}">
                     <button type="button"
                             class="button-load"
-                            th:classappend="${not #authorization.expression('isAuthenticated()')} ? 'login-required' : ''"
-                            th:onclick="${#authorization.expression('isAuthenticated()')} ? 'downloadTrack(${track.id})' : 'showDownloadRequired(${track.id})'">
+                            th:classappend="${not #authorization.expression('isAuthenticated()')} ? 'login-required' : ''">
                         <div class="arrow-down"></div>
                         <div class="line"></div>
                     </button>
 
-                    <div sec:authorize="!isAuthenticated()" class="login-required-popup download-required-popup"
-                         th:id="'download-required-message-' + ${track.id}" style="display: none;">
-                        Для скачивания необходимо <a th:href="@{/login}">войти</a> или <a th:href="@{/register}">зарегистрироваться</a>
+                    <!-- Popup для скачивания (используем те же стили что и у лайков) -->
+                    <div sec:authorize="!isAuthenticated()"
+                         class="login-popup download-popup"
+                         th:id="'download-popup-' + ${track.id}"
+                         style="display: none;">
+                        <div class="popup-content">
+                            <p>Для скачивания необходимо
+                                <a th:href="@{/login}">войти</a>
+                                или
+                                <a th:href="@{/register}">зарегистрироваться</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,8 +90,9 @@
         <div th:if="${#lists.isEmpty(trackList)}">
             <p>Треки не найдены.</p>
         </div>
-
     </div>
+
 </div>
 
 <footer th:replace="fragments/footer :: footer"></footer>
+

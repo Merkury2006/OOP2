@@ -1,83 +1,81 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const downloadContainers = document.querySelectorAll('.download-container');
+window.showDownloadPopup = function(trackId) {
+    return PopupUtils.showPopup(`download-popup-${trackId}`, '/login');
+};
 
-    function showPopup(element, popupId) {
-        if (!popupId) {
-            console.error("Invalid popupId:", popupId);
-            return;
-        }
-        const popup = document.getElementById(popupId);
-        if (!popup) {
-            console.error("Popup not found with ID:", popupId);
-            return;
-        }
-        popup.classList.add('show');
-
-        document.addEventListener('click', function(event) {
-            if (!element.contains(event.target) && !popup.contains(event.target)) {
-                popup.classList.remove('show'); 
-                document.removeEventListener('click', arguments.callee);
-            }
+async function downloadTrack(trackId, button) {
+    try {
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const response = await fetch(`/api/download/${trackId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...(csrfToken && csrfHeader && { [csrfHeader]: csrfToken })
+            },
+            credentials: 'include'
         });
+
+        if (response.status === 401 || response.status === 403) {
+            showDownloadPopup(trackId);
+            return;
+        }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error ${response.status}: ${errorText}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `track_${trackId}.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        if (button) {
+            const arrow = button.querySelector('.arrow-down');
+            const line = button.querySelector('.line');
+
+            arrow.classList.add('loaded');
+            line.classList.add('loaded');
+
+            setTimeout(() => {
+                arrow.classList.remove('loaded');
+                line.classList.remove('loaded');
+            }, 1000);
+        }
+
+    } catch (error) {
+        console.error('Download error:', error);
     }
+}
 
-    downloadContainers.forEach(container => {
-        const button = container.querySelector('.button-load');
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(event) {
+        const downloadButton = event.target.closest('.button-load');
+        if (!downloadButton) return;
 
-            const trackId = container.dataset.trackId;
-            const messageId = 'download-required-message-' + trackId;
+        event.preventDefault();
 
-            if (button.classList.contains('login-required')) {
-                showPopup(container, messageId);
-                return;
-            }
+        if (downloadButton.classList.contains('login-required')) {
+            const container = downloadButton.closest('.download-container');
+            const trackId = container?.dataset.trackId;
+            if (trackId) showDownloadPopup(trackId);
+            return;
+        }
 
-            fetch('/static/Scripts/download_track.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'track_id=' + encodeURIComponent(trackId)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(text || 'Network error');
-                    });
-                }
-                return response.blob();
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'track_' + trackId + '.mp3';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                const arrow = button.querySelector('.arrow-down');
-                const line = button.querySelector('.line');
-                
-                arrow.classList.add('loaded');
-                line.classList.add('loaded');
-                
-                setTimeout(() => {
-                    arrow.classList.remove('loaded');
-                    line.classList.remove('loaded');
-                }, 1000);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                if (error.message.includes("login_required")) {
-                    showPopup(container, messageId);
-                } else {
-                    alert('Ошибка при скачивании: ' + error.message);
-                }
-            });
-        });
+        const container = downloadButton.closest('.download-container');
+        const trackId = container?.dataset.trackId;
+
+        if (!trackId) {
+            console.error('Track ID not found');
+            return;
+        }
+
+        downloadTrack(trackId, downloadButton);
     });
 });

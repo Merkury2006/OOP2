@@ -165,6 +165,9 @@
     border-bottom: 25px solid transparent;
 }
 
+.login-popup,
+.like-popup,
+.download-popup,
 .like-required-popup,
 .download-required-popup {
     position: absolute;
@@ -173,7 +176,7 @@
     top: 50%;
     transform: translateY(-50%);
     white-space: nowrap;
-    opacity: 0; 
+    opacity: 0;
     transition: opacity 0.3s ease-in-out;
     padding: 20px;
     border-radius: 10px;
@@ -185,27 +188,44 @@
     text-decoration: none;
 }
 
-.login-required-popup a {
+/* Для показанных popup */
+.login-popup.show,
+.like-popup.show,
+.download-popup.show,
+.like-required-popup.show,
+.download-required-popup.show {
+    display: block;
+    opacity: 1;
+}
+
+/* Позиционирование для разных типов */
+.like-popup,
+.like-required-popup {
+    right: calc(100% + 10px);
+}
+
+.download-popup,
+.download-required-popup {
+    right: calc(100% + 10px);
+}
+
+/* Стили для ссылок внутри popup */
+.login-popup a,
+.like-popup a,
+.download-popup a,
+.like-required-popup a,
+.download-required-popup a {
     padding: 5px;
     border-radius: 10px;
     text-decoration: none;
 }
 
-.login-required-popup a:hover {
+.login-popup a:hover,
+.like-popup a:hover,
+.download-popup a:hover,
+.like-required-popup a:hover,
+.download-required-popup a:hover {
     background-color: rgb(255, 3, 192);
-}
-
-.login-required-popup.show {
-    display: block;
-    opacity: 1;
-}
-
-.like-required-popup {
-    right: calc(100% + 10px); 
-}
-
-.download-required-popup {
-    right: calc(100% + 10px); 
 }
 
 
@@ -299,6 +319,9 @@ body.light-theme .triangle {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
+body.light-theme .login-popup,
+body.light-theme .like-popup,
+body.light-theme .download-popup,
 body.light-theme .like-required-popup,
 body.light-theme .download-required-popup {
     background-color: #ffffff;
@@ -308,13 +331,21 @@ body.light-theme .download-required-popup {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-body.light-theme .login-required-popup a {
+body.light-theme .login-popup a,
+body.light-theme .like-popup a,
+body.light-theme .download-popup a,
+body.light-theme .like-required-popup a,
+body.light-theme .download-required-popup a {
     background-color: #851794;
     color: #ffffff;
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-body.light-theme .login-required-popup a:hover {
+body.light-theme .login-popup a:hover,
+body.light-theme .like-popup a:hover,
+body.light-theme .download-popup a:hover,
+body.light-theme .like-required-popup a:hover,
+body.light-theme .download-required-popup a:hover {
     background-color: rgb(255, 3, 192);
     transition: background-color 0.5s ease, color 0.5s ease;
 }
@@ -407,6 +438,9 @@ body.dark-theme .triangle {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
+body.dark-theme .login-popup,
+body.dark-theme .like-popup,
+body.dark-theme .download-popup,
 body.dark-theme .like-required-popup,
 body.dark-theme .download-required-popup {
     background-color: #313030;
@@ -416,13 +450,21 @@ body.dark-theme .download-required-popup {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-body.dark-theme .login-required-popup a {
+body.dark-theme .login-popup a,
+body.dark-theme .like-popup a,
+body.dark-theme .download-popup a,
+body.dark-theme .like-required-popup a,
+body.dark-theme .download-required-popup a {
     background-color: rgb(255, 0, 242);
     color: #ffffff;
     transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-body.dark-theme .login-required-popup a:hover {
+body.dark-theme .login-popup a:hover,
+body.dark-theme .like-popup a:hover,
+body.dark-theme .download-popup a:hover,
+body.dark-theme .like-required-popup a:hover,
+body.dark-theme .download-required-popup a:hover {
     background-color: rgb(255, 0, 191);
     transition: background-color 0.5s ease, color 0.5s ease;
 }

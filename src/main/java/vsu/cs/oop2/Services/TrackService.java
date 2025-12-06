@@ -7,6 +7,7 @@ import vsu.cs.oop2.Entity.Track;
 import vsu.cs.oop2.Repository.TrackRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -18,5 +19,8 @@ public class TrackService {
         return trackRepository.findByGenre(genre);
     }
 
+    public Track getTrackById(Long id) {
+        return trackRepository.getTrackById(id).orElseThrow(() -> new IllegalArgumentException("Не найден трек с таким ID" +id));
+    }
     
 }
