@@ -22,5 +22,9 @@ public class TrackService {
     public Track getTrackById(Long id) {
         return trackRepository.getTrackById(id).orElseThrow(() -> new IllegalArgumentException("Не найден трек с таким ID" +id));
     }
+
+    public List<Track> getAllTracks() {
+        return trackRepository.findAll();
+    }
     
 }

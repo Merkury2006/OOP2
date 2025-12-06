@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface TrackRepository extends JpaRepository<Track, Long> {
     List<Track> findByGenre(String genre);
     Optional<Track> getTrackById(Long id);
+    List<Track> findAll();
 }

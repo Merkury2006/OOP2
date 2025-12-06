@@ -5,13 +5,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import vsu.cs.oop2.Entity.Track;
 import vsu.cs.oop2.Services.LikeService;
+import vsu.cs.oop2.Services.TrackService;
+
+import java.util.List;
 
 
 @Controller
 public class MainController {
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private TrackService trackService;
 
     @GetMapping("/")
     public String homePage(Model model) {
@@ -21,8 +28,10 @@ public class MainController {
 
     @GetMapping("/my-music")
     public String myMusicPage(Model model) {
-
-            return "registration/login";
+        List<Track> trackList = trackService.getAllTracks();
+        model.addAttribute("trackList", trackList);
+        model.addAttribute("activePage", "my-music");
+        return "my-music";
 
     }
 
