@@ -1,11 +1,17 @@
 package vsu.cs.oop2.Entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name="tracks")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Track {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,5 +22,13 @@ public class Track {
     private String trackUrl;
     private String imageUrl;
     private String genre;
-    private Integer userIdAdd = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id_add")
+    private User userAdded;
+
+
+    public Long getUserIdAdd() {
+        return userAdded != null ? userAdded.getId() : 0L;
+    }
 }

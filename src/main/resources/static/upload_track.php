@@ -267,7 +267,7 @@ if ($conn) {
             <button id="disable-cookies">Выключить Cookies</button>
         </div>
 </footer>
-<script src="Scripts/process_upload.js"></script>
+
 <script src="Scripts/showFiles.js"></script>
 <script src="Scripts/cookies.js"></script>
 </body>

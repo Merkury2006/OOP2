@@ -1,46 +1,93 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const deleteForms = document.querySelectorAll('.delete-form');
+(function() {
+    // Проверяем, не инициализирован ли скрипт уже
+    if (window.deleteTrackInitialized) {
+        console.warn('delete-track.js уже был инициализирован');
+        return;
+    }
+    window.deleteTrackInitialized = true;
 
-    deleteForms.forEach(form => {
-        const button = form.querySelector('.trash-icon');
-        
-        button.addEventListener('click', function(event) {
-            event.preventDefault();
-            
-            const userId = form.querySelector('input[name="user_id"]').value;
-            const trackId = form.dataset.trackId;
-            
-            const originalBg = button.style.backgroundImage;
-            button.style.backgroundImage = "url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"%3E%3Cpath fill=\"%23e53935\" d=\"M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z\" opacity=\".5\"/%3E%3Cpath fill=\"%23e53935\" d=\"M12 6a1 1 0 0 0-1 1v6a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1zm0 10a1 1 0 1 0 1 1 1 1 0 0 0-1-1z\"/%3E%3C/svg%3E')";
-            
-            fetch('/static/Scripts/delete_track.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `user_id=${encodeURIComponent(userId)}&track_id=${encodeURIComponent(trackId)}`
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Ошибка сети');
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    const trackItem = form.closest('.track-item');
-                    if (trackItem) {
-                        trackItem.style.transition = 'opacity 0.3s';
-                        trackItem.style.opacity = '0';
-                        setTimeout(() => trackItem.remove(), 300);
-                    }
-                } else {
-                    throw new Error(data.message || 'Ошибка удаления');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                button.style.backgroundImage = originalBg;
-                alert(error.message);
-            });
+    let isProcessing = false;
+
+    async function deleteTrack(trackId) {
+        if (isProcessing) {
+            console.log('Уже идет удаление...');
+            return;
+        }
+
+        isProcessing = true;
+
+    try {
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        const response = await fetch(`/api/delete/${trackId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && csrfHeader && { [csrfHeader]: csrfToken })
+            }
         });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Ошибка удаления');
+        }
+
+        // Показываем уведомление об успехе
+        PopupUtils.showNotification('Трек успешно удален', 'success');
+
+        // Находим и удаляем элемент трека
+        const trackElement = document.getElementById(`track-${trackId}`);
+        if (trackElement) {
+            // Простая анимация исчезновения
+            trackElement.style.opacity = '0';
+            trackElement.style.transition = 'opacity 0.3s ease';
+
+            setTimeout(() => {
+                trackElement.remove();
+
+                // Проверяем, остались ли треки
+                const tracks = document.querySelectorAll('.container-sound');
+                if (tracks.length === 0) {
+                    const noTracksMessage = document.querySelector('.no-tracks-message');
+                    if (noTracksMessage) {
+                        noTracksMessage.style.display = 'block';
+                    }
+                }
+            }, 300);
+        } else {
+            // Если элемент не найден, перезагружаем страницу
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+    } catch (error) {
+        console.error('Delete error:', error);
+        PopupUtils.showNotification('Ошибка при удалении: ' + error.message, 'error');
+    }
+    finally {
+        isProcessing = false;
+    }
+}
+
+// Инициализация
+    document.addEventListener('click', function(event) {
+        const trashIcon = event.target.closest('.trash-icon');
+        if (!trashIcon) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const deleteContainer = trashIcon.closest('.delete-container');
+        const trackId = deleteContainer?.dataset.trackId;
+
+        if (trackId) {
+            deleteTrack(trackId);
+        }
     });
-});
+
+    console.log('delete-track.js инициализирован');
+})();

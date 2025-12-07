@@ -12,10 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import vsu.cs.oop2.DTO.DeleteResponse;
 import vsu.cs.oop2.DTO.LikeResponse;
+import vsu.cs.oop2.DTO.UploadResponse;
 import vsu.cs.oop2.Entity.Track;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Services.LikeService;
@@ -96,6 +97,98 @@ public class API {
             return ResponseEntity.badRequest().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/delete/{trackId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<DeleteResponse> delete(@PathVariable Long trackId, Principal principal) {
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            Track track = trackService.getTrackById(trackId);
+
+            if (!track.getUserIdAdd().equals(user.getId())) {
+                DeleteResponse error = DeleteResponse.builder()
+                        .success(false)
+                        .message("Вы не можете удалить этот трек").build();
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(error);
+            }
+
+            trackService.deleteTrack(track);
+
+            DeleteResponse response = DeleteResponse.builder()
+                    .success(true)
+                    .message("Трек успешно удален").build();
+
+            return ResponseEntity.ok().body(response);
+
+        } catch (IllegalArgumentException | UsernameNotFoundException e) {
+            DeleteResponse error = DeleteResponse.builder()
+                    .success(false)
+                    .message("Трек или пользователь не найден")
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+
+        catch (IOException e) {
+            DeleteResponse error = DeleteResponse.builder()
+                    .success(false)
+                    .message("Ошибка сервера")
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UploadResponse> upload(
+            @RequestParam String trackName,
+            @RequestParam String artist,
+            @RequestParam String genre,
+            @RequestParam MultipartFile trackFile,
+            @RequestParam MultipartFile imageFile,
+            Principal principal
+            ) {
+        try {
+            User user = userService.getUserByEmail(principal.getName());
+            Track track = trackService.saveTrack(user, trackName, artist, genre, trackFile, imageFile);
+
+            UploadResponse response = UploadResponse.builder()
+                    .success(true)
+                    .trackId(track.getId())
+                    .trackName(track.getTrackName())
+                    .trackUrl(track.getTrackUrl())
+                    .imageUrl(track.getImageUrl())
+                    .genre(track.getGenre())
+                    .artist(track.getArtist())
+                    .build();
+
+            return ResponseEntity.ok().body(response);
+        }
+        catch (UsernameNotFoundException e) {
+            UploadResponse error = UploadResponse.builder()
+                    .success(false)
+                    .message("Пользователь не найден")
+                    .build();
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(error);
+
+        } catch (IOException e) {
+            UploadResponse error = UploadResponse.builder()
+                    .success(false)
+                    .message("Внутренняя ошибка сервера")
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        } catch (IllegalArgumentException e) {
+            UploadResponse error = UploadResponse.builder()
+                    .success(false)
+                    .message("Некорректные данные трека")
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
 }
