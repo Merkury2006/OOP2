@@ -136,42 +136,22 @@
                 }
             });
 
-            const data = await response.json();
-            console.log('Upload response:', data);
+            const apiResponse = await response.json();
+            console.log('Upload response:', apiResponse);
 
-            if (!response.ok || !data.success) {
-                let errorMessage = data.message || `Ошибка сервера: ${response.status}`;
-
-                if (data.message) {
-                    errorMessage = data.message;
-                } else {
-                    switch(response.status) {
-                        case 400:
-                            errorMessage = 'Некорректный запрос. Проверьте введенные данные';
-                            break;
-                        case 401:
-                            errorMessage = 'Требуется авторизация. Пожалуйста, войдите снова';
-                            break;
-                        case 413:
-                            errorMessage = 'Файл слишком большой';
-                            break;
-                        case 415:
-                            errorMessage = 'Неподдерживаемый формат файла';
-                            break;
-                        case 500:
-                            errorMessage = 'Внутренняя ошибка сервера. Попробуйте позже';
-                            break;
-                    }
-                }
-
+            if (!apiResponse.success) {
+                // Используем сообщение из ответа или общее
+                const errorMessage = apiResponse.message ||
+                    `Ошибка ${response.status}: ${getStatusMessage(response.status)}`;
                 throw new Error(errorMessage);
             }
 
-            if (data.success) {
+
+            if (apiResponse.success) {
                 PopupUtils.showNotification('🎵 Трек успешно загружен!', 'success');
 
                 // Добавляем трек в список без перезагрузки
-                addTrackToUI(data);
+                addTrackToUI(apiResponse.data);
 
                 // Очищаем форму
                 form.reset();
@@ -184,7 +164,7 @@
                     noTracksMessage.style.display = 'none';
                 }
             } else {
-                PopupUtils.showNotification(data.message || 'Ошибка при загрузке', 'error');
+                PopupUtils.showNotification(apiResponse.message || 'Ошибка при загрузке', 'error');
             }
         } catch (error) {
             console.error('Upload error:', error);
@@ -194,6 +174,20 @@
             submitButton.textContent = originalButtonText;
             isProcessing = false;
         }
+    }
+
+    function getStatusMessage(status) {
+        const messages = {
+            400: 'Некорректные данные',
+            401: 'Требуется авторизация',
+            403: 'Доступ запрещен',
+            404: 'Не найдено',
+            413: 'Файл слишком большой',
+            415: 'Неподдерживаемый формат',
+            500: 'Ошибка сервера',
+            503: 'Сервис временно недоступен'
+        };
+        return messages[status] || `HTTP ошибка ${status}`;
     }
 
     // Функция для добавления трека в UI

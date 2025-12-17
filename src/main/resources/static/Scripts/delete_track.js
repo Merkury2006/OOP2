@@ -29,10 +29,10 @@
             }
         });
 
-        const data = await response.json();
+        const apiResponse = await response.json();
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || 'Ошибка удаления');
+        if (!response.ok || !apiResponse.success) {
+            throw new Error(apiResponse.message || 'Ошибка удаления');
         }
 
         // Показываем уведомление об успехе

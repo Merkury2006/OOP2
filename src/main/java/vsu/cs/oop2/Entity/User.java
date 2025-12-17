@@ -6,18 +6,32 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * СУЩНОСТЬ ПОЛЬЗОВАТЕЛЯ СИСТЕМЫ
+ *
+ * Основная сущность для хранения данных пользователей.
+ * Содержит учетные данные и связь с загруженными треками.
+ *
+ * Таблица: userdata
+ *
+ * Отношения:
+ * - OneToMany → Track (uploadedTracks): Пользователь может загружать много треков
+ *
+ * @apiNote Используется для аутентификации (Spring Security)
+ * @see vsu.cs.oop2.Services.UserService
+ */
 @Entity
 @Table(name = "userdata")
 @Data
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Уникальный идентификатор пользователя
 
-    private String username;
-    private String email;
-    private String password;
+    private String username; // Имя пользователя (отображаемое)
+    private String email;    // Email (уникальный, для входа)
+    private String password; // Хешированный пароль (BCrypt)
 
     @OneToMany(mappedBy = "userAdded", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Track> uploadedTracks = new ArrayList<>();
+    private List<Track> uploadedTracks = new ArrayList<>();  // Загруженные пользователем треки
 }

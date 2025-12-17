@@ -26,12 +26,12 @@ async function likeTrack(trackId, button, container) {
             throw new Error(`HTTP error ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json();
+        const apiResponse = await response.json();
 
-        if (data.success) {
+        if (apiResponse.success) {
             if (!button) return;
 
-            if (data.liked) {
+            if (apiResponse.data.liked) {
                 button.classList.add('liked');
                 const icon = button.querySelector('i');
                 if (icon) icon.className = 'fas fa-heart';

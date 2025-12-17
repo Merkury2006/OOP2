@@ -6,8 +6,21 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+/**
+ * DTO ДЛЯ ЗАПРОСА РЕГИСТРАЦИИ НОВОГО ПОЛЬЗОВАТЕЛЯ
+ *
+ * Используется в форме регистрации. Валидируется Spring Validation.
+ * Все поля обязательны и проходят строгую проверку.
+ *
+ * Валидация:
+ * - username: Не пустое
+ * - email: Не пустое, корректный формат email
+ * - password: Не пустое, минимум 4 символа, хотя бы одна цифра и буква
+ *
+ * @see vsu.cs.oop2.Controllers.RegistrationController#registerUser
+ */
 @Data
-public class UserRegistrationDTO {
+public class RegistrationRequest {
 
     @NotBlank(message = "Имя пользователя не может быть пустым")
     private String username;

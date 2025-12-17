@@ -5,12 +5,52 @@ import org.springframework.stereotype.Repository;
 import vsu.cs.oop2.Entity.Track;
 
 import java.util.List;
-import java.util.Optional;
 
+/**
+ * РЕПОЗИТОРИЙ ДЛЯ РАБОТЫ С МУЗЫКАЛЬНЫМИ ТРЕКАМИ
+ *
+ * Обеспечивает доступ к данным о треках.
+ * Содержит методы для фильтрации по жанру и пользователю.
+ *
+ * Таблица: tracks
+ *
+ * Основные операции:
+ * - Поиск треков по жанру
+ * - Получение треков пользователя
+ * - Стандартные CRUD операции (через JpaRepository)
+ *
+ * @apiNote Содержит методы для получения треков по различным критериям
+ * @see vsu.cs.oop2.Services.TrackService
+ */
 @Repository
 public interface TrackRepository extends JpaRepository<Track, Long> {
+    /**
+     * ПОИСК ТРЕКОВ ПО ЖАНРУ
+     *
+     * Используется для отображения треков на страницах конкретных жанров.
+     * Возвращает все треки указанного жанра.
+     *
+     * @param genre Название жанра для фильтрации (например, "Рок музыка")
+     * @return Список треков указанного жанра
+     *
+     * @apiNote Используется в GenreController для страниц жанров
+     * @see vsu.cs.oop2.Controllers.GenreController
+     */
     List<Track> findByGenre(String genre);
-    Optional<Track> getTrackById(Long id);
-    List<Track> findAll();
+
+
+
+    /**
+     * ТРЕКИ КОНКРЕТНОГО ПОЛЬЗОВАТЕЛЯ, ОТСОРТИРОВАННЫЕ ПО ID (НОВЫЕ ПЕРВЫМИ)
+     *
+     * Возвращает треки, загруженные указанным пользователем,
+     * отсортированные по убыванию ID (последние загруженные - первыми).
+     *
+     * @param id ID пользователя
+     * @return Список треков пользователя, отсортированный по убыванию ID
+     *
+     * @apiNote Используется на странице загрузки для показа треков пользователя
+     * @see vsu.cs.oop2.Controllers.MainController#uploadPage
+     */
     List<Track> findByUserAddedIdOrderByIdDesc(Long id);
 }
