@@ -1,5 +1,6 @@
 package vsu.cs.oop2.Controllers;
 
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vsu.cs.oop2.DTO.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Services.UserService;
+
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -85,7 +88,7 @@ public class RegistrationController {
     @PostMapping("/register")
     public String registerUser(@Valid @ModelAttribute("user") RegistrationRequest userDTO,
                                BindingResult result,
-                               RedirectAttributes attributes) {
+                               RedirectAttributes attributes) throws MessagingException {
         log.info("Registration attempt for email: {}", userDTO.getEmail());
 
         if (result.hasErrors()) {
@@ -97,19 +100,29 @@ public class RegistrationController {
         try {
             User user = userService.registerUser(userDTO);
 
-            log.info("User registered successfully: {} (ID: {})",
+            log.info("User registered successfully(pending verification): {} (ID: {})",
                     user.getEmail(), user.getId());
 
-            attributes.addFlashAttribute("message", "Аккаунт успешно создан");
-            attributes.addFlashAttribute("messageType", "success");
-            return "redirect:/login";
+            attributes.addFlashAttribute("registeredEmail", user.getEmail());
+            return "redirect:/registration-success";
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | UnsupportedEncodingException e) {
             log.error("Registration failed for email {}: {}", userDTO.getEmail(), e.getMessage());
             attributes.addFlashAttribute("error", e.getMessage());
             attributes.addFlashAttribute("user", userDTO);
             return "redirect:/register";
         }
+    }
+
+
+    @GetMapping("/registration-success")
+    public String registrationSuccessPage(@ModelAttribute("registeredEmail") String email, Model model) {
+        if (email == null || email.trim().isEmpty()) {
+            return "redirect:/register";
+        }
+
+        model.addAttribute("email", email);
+        return "registration/success";
     }
 
 
@@ -130,6 +143,7 @@ public class RegistrationController {
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
+                            @RequestParam(value = "verified", required = false) String verified,
                             Model model) {
 
         if (error != null) {
@@ -141,6 +155,12 @@ public class RegistrationController {
             model.addAttribute("message", "Вы успешно вышли из системы");
             model.addAttribute("messageType", "success");
         }
+
+        if (verified != null) {
+            model.addAttribute("message", "Email успешно подтвержден! Теперь вы можете войти.");
+            model.addAttribute("messageType", "success");
+        }
+
 
         return "registration/login";
     }

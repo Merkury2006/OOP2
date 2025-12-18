@@ -55,4 +55,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @see vsu.cs.oop2.Services.UserService#registerUser(vsu.cs.oop2.DTO.RegistrationRequest)
      */
     boolean existsByEmail(String email);
+
+    Optional<User> findByEmailVerificationToken(String emailVerificationToken);
 }

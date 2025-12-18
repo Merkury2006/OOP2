@@ -1,5 +1,6 @@
 package vsu.cs.oop2.Exceptions;
 
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vsu.cs.oop2.DTO.ApiResponse;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -139,6 +141,18 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(exception.getMessage(), 400);
     }
 
+
+    @ExceptionHandler(MessagingException.class)
+    public ApiResponse<Void> handleMessageException(MessagingException exception) {
+        log.warn("Ошибка отправил email: {}", exception.getMessage() );
+        return ApiResponse.error(exception.getMessage(), 500);
+    }
+
+    @ExceptionHandler(UnsupportedEncodingException.class)
+    public ApiResponse<Void> handleEncodeException(UnsupportedEncodingException exception) {
+        log.warn("Ошибка кодировки: {}", exception.getMessage() );
+        return ApiResponse.error(exception.getMessage(), 500);
+    }
 
     /**
      * ОБРАБОТКА ВСЕХ ПРОЧИХ ИСКЛЮЧЕНИЙ (ГЛОБАЛЬНЫЙ ФОЛБЭК)

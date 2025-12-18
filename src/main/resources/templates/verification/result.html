@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат подтверждения - Merkury-Music</title>
+    <link rel="icon" th:href="@{/favicon.ico}" type="image/x-icon">
+    <link rel="icon" type="image/png" th:href="@{/favicon-32x32.png}" sizes="32x32">
+    <link rel="icon" type="image/png" th:href="@{/favicon-16x16.png}" sizes="16x16">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: rgba(128, 0, 128, 0.68);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.89);
+            width: 400px;
+            text-align: center;
+        }
+
+        .result-container h1 {
+            color: #800080;
+            margin-bottom: 25px;
+            font-size: 24px;
+        }
+
+        .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .success-icon {
+            color: #4CAF50;
+        }
+
+        .error-icon {
+            color: #f44336;
+        }
+
+        .message {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #333;
+            min-height: 80px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #800080;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background-color: #6a006a;
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background-color: #999;
+        }
+
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+
+        .actions {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        @media (max-width: 450px) {
+            .result-container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="result-container">
+    <div th:if="${success}" class="icon success-icon">✓</div>
+    <div th:unless="${success}" class="icon error-icon">✗</div>
+
+    <h1 th:text="${success ? 'Успешно!' : 'Ошибка'}"></h1>
+
+    <div class="message" th:text="${message}"></div>
+
+    <div class="actions">
+        <th:block th:if="${success}">
+            <a href="/login" class="btn">Войти в систему</a>
+        </th:block>
+        <th:block th:unless="${success}">
+            <a href="/resend-verification" class="btn">Отправить письмо повторно</a>
+            <a href="/register" class="btn btn-secondary">Регистрация</a>
+        </th:block>
+    </div>
+</div>
+</body>
+</html>

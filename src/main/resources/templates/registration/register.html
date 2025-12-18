@@ -200,6 +200,9 @@
             <input type="email" th:field="*{email}"
                    placeholder="Электронная почта"
                    required
+                   pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                   title="Введите корректный email адрес"
+                   onblur="validateEmail(this)"
                    th:class="${#fields.hasErrors('email')} ? 'field-error' : ''">
 
             <!-- Ошибка валидации для email -->
@@ -231,3 +234,53 @@
         <p>Уже зарегистрированы? <a th:href="@{/login}"><button type="button" class="in">Войти</button></a></p>
     </div>
 </div>
+<script>
+    // Валидация email в реальном времени
+    function validateEmail(input) {
+        const email = input.value.trim();
+        const errorElement = document.getElementById('emailError');
+
+        if (!email) {
+            errorElement.textContent = 'Email обязателен';
+            input.classList.add('field-error');
+            return false;
+        }
+
+        // Проверка на "бредовые" домены
+        const suspiciousDomains = [
+            'tempmail.com', '10minutemail.com', 'mailinator.com',
+            'guerrillamail.com', 'yopmail.com', 'trashmail.com',
+            'temp-mail.org', 'fakeinbox.com', 'throwawaymail.com',
+            'tempmail.net', 'disposablemail.com'
+        ];
+
+        const domain = email.split('@')[1]?.toLowerCase();
+
+        if (domain && suspiciousDomains.includes(domain)) {
+            errorElement.textContent = 'Использование временных email запрещено';
+            input.classList.add('field-error');
+            return false;
+        }
+
+        // Проверка формата
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            errorElement.textContent = 'Введите корректный email';
+            input.classList.add('field-error');
+            return false;
+        }
+
+        errorElement.textContent = '';
+        input.classList.remove('field-error');
+        return true;
+    }
+
+    // Предотвращение отправки формы при невалидном email
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const emailInput = document.querySelector('input[type="email"]');
+        if (!validateEmail(emailInput)) {
+            e.preventDefault();
+            emailInput.focus();
+        }
+    });
+</script>

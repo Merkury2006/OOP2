@@ -1,6 +1,10 @@
 package vsu.cs.oop2.Services;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +17,10 @@ import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Exceptions.UserNotFoundException;
 import vsu.cs.oop2.Repository.UserRepository;
 
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.UUID;
 
 
 /**
@@ -32,10 +39,14 @@ import java.util.Collections;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
+    @Value("${app.email.verificationTokenExpiry}")
+    private Integer emailVerificationTokenExpiry;
 
     /**
      * ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО EMAIL
@@ -69,7 +80,7 @@ public class UserService implements UserDetailsService {
      * @apiNote Использует existsByEmail для быстрой проверки уникальности
      * @see UserRepository#existsByEmail(String)
      */
-    public User registerUser(RegistrationRequest request) {
+    public User registerUser(RegistrationRequest request) throws MessagingException, UnsupportedEncodingException {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email уже используется");
         }
@@ -78,7 +89,48 @@ public class UserService implements UserDetailsService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        user.setEmailVerified(false);
+        String verificationToken = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(verificationToken);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
+
+        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
         return userRepository.save(user);
+    }
+
+    public boolean verifyEmail(String token) {
+        User user = userRepository.findByEmailVerificationToken(token).orElseThrow(
+                () -> new UserNotFoundException("Неверный или устаревший токен")
+        );
+
+        if (user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Срок действия токена истек");
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerificationToken(null);
+        user.setVerificationTokenExpiry(null);
+        userRepository.save(user);
+
+        log.info("Email verified for user: {}", user.getEmail());
+        return true;
+    }
+
+    public void resendVerificationEmail(String email) throws MessagingException, UnsupportedEncodingException {
+        User user = userRepository.findUserByEmail(email).orElseThrow(
+                () -> new UserNotFoundException("Пользователь с таким Email не найден")
+        );
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email уже подтвержден");
+        }
+
+        String newToken = UUID.randomUUID().toString();
+        user.setEmailVerificationToken(newToken);
+        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
+        userRepository.save(user);
+
+        emailService.sendVerificationEmail(email, newToken);
     }
 
 
