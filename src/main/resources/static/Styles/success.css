@@ -1,4 +1,16 @@
-﻿/* Стили для страниц успеха */
+﻿/* success.css - Стили для страниц успеха */
+
+/* Фон страницы */
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: rgba(128, 0, 128, 0.68);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
 .success-container {
     background-color: #fff;
     padding: 30px;

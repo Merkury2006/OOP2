@@ -21,22 +21,22 @@ public class VerificationEmailController {
     private final UserService userService;
 
     @GetMapping("/verify-email")
-    public String verifyEmail(@RequestParam String token, Model model) {
+    public String verifyEmail(@RequestParam String token,  RedirectAttributes attributes) {
         try {
             boolean verified = userService.verifyEmail(token);
             if (verified) {
-                model.addAttribute("success", true);
-                model.addAttribute("message", "Email успешно подтвержден! Теперь вы можете войти в систему.");
+                attributes.addFlashAttribute("success", true);
+                attributes.addFlashAttribute("message", "Email успешно подтвержден! Теперь вы можете войти в систему.");
             } else {
-                model.addAttribute("success", false);
-                model.addAttribute("message", "Ошибка подтверждения email.");
+                attributes.addFlashAttribute("success", false);
+                attributes.addFlashAttribute("message", "Ошибка подтверждения email.");
             }
         } catch (IllegalArgumentException | UserNotFoundException e) {
-            model.addAttribute("success", false);
-            model.addAttribute("message", e.getMessage());
+            attributes.addFlashAttribute("success", false);
+            attributes.addFlashAttribute("message", e.getMessage());
         }
 
-        return "emailVerification/result";
+        return "redirect:login";
     }
 
     @GetMapping("/resend-verification")

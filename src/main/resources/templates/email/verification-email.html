@@ -4,7 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подтверждение email - Merkury-Music</title>
-    <link rel="stylesheet" th:href="@{/css/email.css}">
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .email-header {
+            background: linear-gradient(135deg, #800080 0%, #6a006a 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: white;
+        }
+
+        .email-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .email-content {
+            padding: 30px;
+        }
+
+        .email-content h2 {
+            color: #800080;
+            margin-top: 0;
+            font-size: 22px;
+        }
+
+        .email-button {
+            display: inline-block;
+            padding: 14px 35px;
+            background: #800080;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+            font-size: 16px;
+            border: none;
+            text-align: center;
+        }
+
+        .email-button:hover {
+            background: #6a006a;
+            text-decoration: none;
+        }
+
+        .verification-link {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-size: 14px;
+            margin: 20px 0;
+            font-family: monospace;
+            color: #333;
+            border-left: 4px solid #800080;
+        }
+
+        .email-warning {
+            color: #ff9800;
+            font-weight: bold;
+            margin-top: 25px;
+            padding: 12px;
+            background: #fff8e1;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .email-footer {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+
+        .email-instructions {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 25px 0;
+            border-left: 4px solid #800080;
+        }
+
+        .email-instructions ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .email-instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .security-note {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+            color: #1565c0;
+        }
+
+        .email-highlight {
+            font-weight: bold;
+            color: #800080;
+            background: #f0e6ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+
+            .email-content, .email-header {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
 <div class="email-container">
@@ -37,7 +171,8 @@
         </div>
 
         <div class="email-warning">
-            ⚠️ Ссылка действительна <strong th:text="${emailVerificationTokenExpiry}"> часа</strong>.
+            ⚠️ Ссылка действительна <strong th:text="${emailVerificationTokenExpiry}"></strong>
+            <span>часа.</span>
         </div>
 
         <p style="margin-top: 25px; color: #666;">
