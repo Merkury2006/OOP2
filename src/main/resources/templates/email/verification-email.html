@@ -4,156 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Подтверждение email - Merkury-Music</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #800080 0%, #6a006a 100%);
-            padding: 30px;
-            text-align: center;
-            color: white;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 28px;
-            color: white;
-        }
-
-        .header p {
-            margin: 10px 0 0 0;
-            opacity: 0.9;
-            font-size: 16px;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .content h2 {
-            color: #800080;
-            margin-top: 0;
-            font-size: 22px;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 14px 35px;
-            background: #800080;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin: 20px 0;
-            font-size: 16px;
-            border: none;
-            text-align: center;
-        }
-
-        .button:hover {
-            background: #6a006a;
-            text-decoration: none;
-        }
-
-        .verification-link {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            word-break: break-all;
-            font-size: 14px;
-            margin: 20px 0;
-            font-family: monospace;
-            color: #333;
-            border-left: 4px solid #800080;
-        }
-
-        .warning {
-            color: #ff9800;
-            font-weight: bold;
-            margin-top: 25px;
-            padding: 12px;
-            background: #fff8e1;
-            border-radius: 5px;
-            border-left: 4px solid #ff9800;
-        }
-
-        .footer {
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 12px;
-            background: #f9f9f9;
-            border-top: 1px solid #eee;
-        }
-
-        .instructions {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 5px;
-            margin: 25px 0;
-            border-left: 4px solid #800080;
-        }
-
-        .instructions ol {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-
-        .instructions li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-
-        .email-highlight {
-            font-weight: bold;
-            color: #800080;
-            background: #f0e6ff;
-            padding: 2px 6px;
-            border-radius: 3px;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                margin: 10px;
-                border-radius: 8px;
-            }
-
-            .content, .header {
-                padding: 20px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/email.css}">
 </head>
 <body>
-<div class="container">
-    <div class="header">
+<div class="email-container">
+    <div class="email-header">
         <h1>🎵 Merkury-Music</h1>
         <p>Подтверждение email адреса</p>
     </div>
 
-    <div class="content">
+    <div class="email-content">
         <h2>Здравствуйте!</h2>
         <p>Вы зарегистрировались в музыкальном сервисе <strong>Merkury-Music</strong>.</p>
         <p>Для завершения регистрации подтвердите ваш email:</p>
 
         <div style="text-align: center; margin: 30px 0;">
-            <a th:href="${verificationUrl}" class="button">
+            <a th:href="${verificationUrl}" class="email-button">
                 ✅ Подтвердить Email
             </a>
         </div>
@@ -161,7 +27,7 @@
         <p><strong>Или скопируйте ссылку:</strong></p>
         <div class="verification-link" th:text="${verificationUrl}"></div>
 
-        <div class="instructions">
+        <div class="email-instructions">
             <h3 style="margin-top: 0; color: #800080;">Инструкция:</h3>
             <ol>
                 <li>Нажмите на кнопку <strong>"Подтвердить Email"</strong> выше</li>
@@ -170,8 +36,8 @@
             </ol>
         </div>
 
-        <div class="warning">
-            ⚠️ Ссылка действительна <strong>24 часа</strong>.
+        <div class="email-warning">
+            ⚠️ Ссылка действительна <strong th:text="${emailVerificationTokenExpiry}"> часа</strong>.
         </div>
 
         <p style="margin-top: 25px; color: #666;">
@@ -179,7 +45,7 @@
         </p>
     </div>
 
-    <div class="footer">
+    <div class="email-footer">
         <p style="margin: 0;">© 2024 Merkury-Music. Все права защищены.</p>
         <p style="margin: 5px 0 0 0; color: #999;">
             Это письмо отправлено автоматически, пожалуйста, не отвечайте на него.

@@ -144,11 +144,22 @@ public class RegistrationController {
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
                             @RequestParam(value = "verified", required = false) String verified,
+                            @RequestParam(value = "email", required = false) String email,
                             Model model) {
-
         if (error != null) {
-            model.addAttribute("error", "Неверные данные");
-            log.warn("Login page loaded with error (failed authentication)");
+            switch (error) {
+                case "notVerified":
+                    model.addAttribute("error", "Email не подтвержден");
+                    log.warn("Unverified login attempt for email: {}", email);
+                    break;
+                case "badCredentials":
+                    model.addAttribute("error", "Неверный email или пароль");
+                    log.warn("Bad Credentials login attempt");
+                    break;
+                default:
+                    model.addAttribute("error", "Ошибка входа");
+
+            }
         }
 
         if (logout != null) {
@@ -160,8 +171,6 @@ public class RegistrationController {
             model.addAttribute("message", "Email успешно подтвержден! Теперь вы можете войти.");
             model.addAttribute("messageType", "success");
         }
-
-
         return "registration/login";
     }
 }

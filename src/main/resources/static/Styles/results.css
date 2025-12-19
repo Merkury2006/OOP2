@@ -1,0 +1,95 @@
+﻿/* Стили для страниц результатов (подтверждение, восстановление и т.д.) */
+.result-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.79);
+    width: 400px;
+    text-align: center;
+}
+
+.result-container h1 {
+    color: #800080;
+    margin-bottom: 25px;
+    font-size: 24px;
+}
+
+.icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+}
+
+.success-icon {
+    color: #4CAF50;
+}
+
+.error-icon {
+    color: #f44336;
+}
+
+.message {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 20px 0;
+    color: #333;
+    min-height: 80px;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.result-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    flex: 1;
+}
+
+.result-btn-primary {
+    background: #800080;
+    color: white;
+}
+
+.result-btn-primary:hover {
+    background: #6a006a;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.result-btn-secondary {
+    background: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.result-btn-secondary:hover {
+    background: #e0e0e0;
+    text-decoration: none;
+}
+
+@media (max-width: 450px) {
+    .result-container {
+        width: 90%;
+        padding: 20px;
+    }
+
+    .result-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .result-btn {
+        width: 100%;
+    }
+}

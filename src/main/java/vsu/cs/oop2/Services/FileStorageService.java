@@ -35,10 +35,10 @@ import java.util.UUID;
 @Service
 public class FileStorageService {
 
-    @Value("${file.upload.music-path}")
+    @Value("${app.upload.music-path}")
     private String musicPath;
 
-    @Value("${file.upload.image-path}")
+    @Value("${app.upload.image-path}")
     private String imagePath;
 
     @Autowired

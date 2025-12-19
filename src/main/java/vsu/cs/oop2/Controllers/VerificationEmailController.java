@@ -36,12 +36,12 @@ public class VerificationEmailController {
             model.addAttribute("message", e.getMessage());
         }
 
-        return "verification/result";
+        return "emailVerification/result";
     }
 
     @GetMapping("/resend-verification")
     public String resendVerificationPage(Model model) {
-        return "verification/resend";
+        return "emailVerification/resend";
     }
 
     @PostMapping("/resend-verification")

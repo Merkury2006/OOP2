@@ -42,6 +42,15 @@ public class User {
     @Column(name = "verification_token_expiry")
     private LocalDateTime verificationTokenExpiry;
 
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expiry")
+    private LocalDateTime passwordResetExpire;
+
+    @Column(name = "last_password_reset_request")
+    private LocalDateTime lastPasswordResetRequest;
+
     @OneToMany(mappedBy = "userAdded", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Track> uploadedTracks = new ArrayList<>();  // Загруженные пользователем треки
 }

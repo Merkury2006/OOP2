@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +19,7 @@ import vsu.cs.oop2.Exceptions.UserNotFoundException;
 import vsu.cs.oop2.Repository.UserRepository;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
-    @Value("${app.email.verificationTokenExpiry}")
+    @Value("${app.email.verificationTokenExpiryHours}")
     private Integer emailVerificationTokenExpiry;
 
     /**
@@ -94,7 +96,7 @@ public class UserService implements UserDetailsService {
         user.setEmailVerificationToken(verificationToken);
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
 
-        emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        emailService.sendVerificationEmail(user.getEmail(), verificationToken, emailVerificationTokenExpiry);
         return userRepository.save(user);
     }
 
@@ -130,7 +132,7 @@ public class UserService implements UserDetailsService {
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
         userRepository.save(user);
 
-        emailService.sendVerificationEmail(email, newToken);
+        emailService.sendVerificationEmail(email, newToken, emailVerificationTokenExpiry);
     }
 
 
@@ -148,16 +150,21 @@ public class UserService implements UserDetailsService {
      * @see org.springframework.security.core.userdetails.UserDetailsService
      */
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException, DisabledException {
         try {
-            User user = getUserByEmail(email);
+            User user = userRepository.findUserByEmail(email).orElseThrow(
+                    () -> new UserNotFoundException(email)
+            );
+            if (!user.isEmailVerified()) {
+                throw new DisabledException("Email не подтвержден. Проверьте вашу почту.");
+            }
             return new org.springframework.security.core.userdetails.User(
                     user.getEmail(),
                     user.getPassword(),
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
             );
         } catch (UserNotFoundException e) {
-            throw new UsernameNotFoundException("Пользователь не найден", e);
+            throw new UsernameNotFoundException(e.getMessage());
         }
     }
 }

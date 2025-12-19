@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат подтверждения - Merkury-Music</title>
+    <link rel="icon" th:href="@{/Images/favicon.ico}" type="image/x-icon">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-32x32.png}" sizes="32x32">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-16x16.png}" sizes="16x16">
+    <link rel="stylesheet" th:href="@{/Styles/results.css}">
+</head>
+<body>
+<div class="result-container">
+    <div th:if="${success}" class="icon success-icon">✓</div>
+    <div th:unless="${success}" class="icon error-icon">✗</div>
+
+    <h1 th:text="${success ? 'Успешно!' : 'Ошибка'}"></h1>
+
+    <div class="message" th:text="${message}"></div>
+
+    <div class="result-buttons">
+        <th:block th:if="${success}">
+            <a href="/login" class="result-btn result-btn-primary">Войти в систему</a>
+        </th:block>
+        <th:block th:unless="${success}">
+            <a href="/resend-verification" class="result-btn result-btn-primary">Отправить письмо повторно</a>
+            <a href="/register" class="result-btn result-btn-secondary">Регистрация</a>
+        </th:block>
+    </div>
+</div>
+</body>
+</html>

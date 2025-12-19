@@ -1,13 +1,23 @@
 package vsu.cs.oop2.Config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import vsu.cs.oop2.Exceptions.UserNotFoundException;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * КОНФИГУРАЦИЯ БЕЗОПАСНОСТИ ПРИЛОЖЕНИЯ
@@ -22,6 +32,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+@Slf4j
 public class SecurityConfig {
     /**
      * БИН ДЛЯ КОДИРОВАНИЯ ПАРОЛЕЙ
@@ -58,7 +69,8 @@ public class SecurityConfig {
                 formLogin(form -> form
                     .loginPage("/login")
                     .defaultSuccessUrl("/")
-                    .usernameParameter("email")
+                    .usernameParameter("username")
+                    .failureHandler(authenticationFailureHandler())
                     .permitAll()
                 ).
                 logout(logout -> logout
@@ -71,5 +83,34 @@ public class SecurityConfig {
                 csrf(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationFailureHandler authenticationFailureHandler() {
+        return ((request, response, exception) -> {
+            String email = request.getParameter("username");
+            String redirectUrl = "/login?error";
+
+            Throwable realCause = getRootCause(exception);
+
+
+            if (realCause.getMessage().contains("Email не подтвержден") || exception instanceof DisabledException) {
+                log.warn("Unverified email attempt: {}", email);
+                redirectUrl = "/login?error=notVerified&email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
+
+            } else if (exception instanceof BadCredentialsException || exception instanceof UsernameNotFoundException) {
+                log.warn("Bad credentials for email: {}", email);
+                redirectUrl = "/login?error=badCredentials";
+            }
+            response.sendRedirect(redirectUrl);
+        });
+    }
+
+    private Throwable getRootCause(Throwable throwable) {
+        Throwable cause = throwable;
+        while(cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause;
     }
 }
