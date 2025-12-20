@@ -1,4 +1,4 @@
-package vsu.cs.oop2.DTO;
+package vsu.cs.oop2.DTO.Authorization;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

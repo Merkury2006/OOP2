@@ -14,7 +14,25 @@
 <div class="auth-container">
     <h2>🔑 Восстановление пароля</h2>
 
-    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <!-- Успешное сообщение с кнопкой почты -->
+    <div th:if="${success}" class="alert alert-success">
+        <div style="margin-bottom: 10px;">
+            <span th:text="${success}"></span>
+        </div>
+
+        <!-- Кнопка почты -->
+        <div style="text-align: center;">
+            <a class="btn"
+               style="display: inline-block; padding: 10px 20px; background: #800080; color: white;
+                  text-decoration: none; border-radius: 5px; font-weight: bold;"
+               th:href="${mailUrl}"
+               target="_blank">
+                📨 Открыть <span th:text="${mailServiceName}"></span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Ошибка -->
     <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
     <div class="info-box">
@@ -54,6 +72,9 @@
         <a th:href="@{/}">Главная</a>
     </div>
 </div>
+
+<!-- Подключаем общий auth.js -->
+<script th:src="@{/Scripts/auth.js}"></script>
 
 </body>
 </html>

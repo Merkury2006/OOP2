@@ -13,13 +13,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vsu.cs.oop2.DTO.RegistrationRequest;
+import vsu.cs.oop2.DTO.Authorization.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Exceptions.UserNotFoundException;
 import vsu.cs.oop2.Repository.UserRepository;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.UUID;
@@ -45,7 +44,7 @@ import java.util.UUID;
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
+    private final EmailSendService emailSendService;
 
     @Value("${app.email.verificationTokenExpiryHours}")
     private Integer emailVerificationTokenExpiry;
@@ -95,44 +94,10 @@ public class UserService implements UserDetailsService {
         String verificationToken = UUID.randomUUID().toString();
         user.setEmailVerificationToken(verificationToken);
         user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
+        user.setLastVerificationSent(LocalDateTime.now());
 
-        emailService.sendVerificationEmail(user.getEmail(), verificationToken, emailVerificationTokenExpiry);
+        emailSendService.sendVerificationEmail(user.getEmail(), verificationToken, emailVerificationTokenExpiry);
         return userRepository.save(user);
-    }
-
-    public boolean verifyEmail(String token) {
-        User user = userRepository.findByEmailVerificationToken(token).orElseThrow(
-                () -> new UserNotFoundException("Неверный или устаревший токен")
-        );
-
-        if (user.getVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Срок действия токена истек");
-        }
-
-        user.setEmailVerified(true);
-        user.setEmailVerificationToken(null);
-        user.setVerificationTokenExpiry(null);
-        userRepository.save(user);
-
-        log.info("Email verified for user: {}", user.getEmail());
-        return true;
-    }
-
-    public void resendVerificationEmail(String email) throws MessagingException, UnsupportedEncodingException {
-        User user = userRepository.findUserByEmail(email).orElseThrow(
-                () -> new UserNotFoundException("Пользователь с таким Email не найден")
-        );
-
-        if (user.isEmailVerified()) {
-            throw new IllegalArgumentException("Email уже подтвержден");
-        }
-
-        String newToken = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(newToken);
-        user.setVerificationTokenExpiry(LocalDateTime.now().plusHours(emailVerificationTokenExpiry));
-        userRepository.save(user);
-
-        emailService.sendVerificationEmail(email, newToken, emailVerificationTokenExpiry);
     }
 
 

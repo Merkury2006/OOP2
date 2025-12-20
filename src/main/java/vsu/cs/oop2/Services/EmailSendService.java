@@ -13,12 +13,11 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class EmailService {
+public class EmailSendService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
@@ -45,7 +44,7 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String toEmail, String token, Integer resetExpireHours) throws MessagingException, UnsupportedEncodingException {
-        String resetUrl = baseUrl + "/reset-password?token=" + token;
+        String resetUrl = baseUrl + "/password/reset?token=" + token;
 
         Context context = new Context();
         context.setVariable("resetUrl", resetUrl);

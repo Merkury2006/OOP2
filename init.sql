@@ -9,7 +9,8 @@ CREATE TABLE userdata (
                           verification_token_expiry TIMESTAMP,
                           password_reset_token VARCHAR(255),
                           password_reset_expiry TIMESTAMP,
-                          last_password_reset_request TIMESTAMP
+                          last_password_reset_request TIMESTAMP,
+                          last_verification_sent TIMESTAMP  -- НОВОЕ ПОЛЕ
 );
 
 -- Создание таблицы треков

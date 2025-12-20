@@ -2,6 +2,7 @@ package vsu.cs.oop2.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import vsu.cs.oop2.DTO.Authorization.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
 
 import java.util.Optional;
@@ -52,9 +53,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true если пользователь с таким email существует, false в противном случае
      *
      * @apiNote Используется в UserService.registerUser() для предотвращения дубликатов
-     * @see vsu.cs.oop2.Services.UserService#registerUser(vsu.cs.oop2.DTO.RegistrationRequest)
+     * @see vsu.cs.oop2.Services.UserService#registerUser(RegistrationRequest)
      */
     boolean existsByEmail(String email);
 
     Optional<User> findByEmailVerificationToken(String emailVerificationToken);
+
+    Optional<User> findUserByPasswordResetToken(String token);
 }

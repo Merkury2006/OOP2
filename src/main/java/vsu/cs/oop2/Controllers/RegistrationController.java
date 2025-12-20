@@ -12,11 +12,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import vsu.cs.oop2.DTO.RegistrationRequest;
+import vsu.cs.oop2.DTO.Authorization.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Services.UserService;
 
 import java.io.UnsupportedEncodingException;
+
+import static vsu.cs.oop2.Utils.getMailServiceName;
+import static vsu.cs.oop2.Utils.getMailServiceUrl;
 
 
 /**
@@ -106,9 +109,15 @@ public class RegistrationController {
             attributes.addFlashAttribute("registeredEmail", user.getEmail());
             return "redirect:/registration-success";
 
-        } catch (IllegalArgumentException | UnsupportedEncodingException e) {
+        } catch (IllegalArgumentException e) {
             log.error("Registration failed for email {}: {}", userDTO.getEmail(), e.getMessage());
             attributes.addFlashAttribute("error", e.getMessage());
+            attributes.addFlashAttribute("user", userDTO);
+            return "redirect:/register";
+
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("Error sending verification email for {}: {}", userDTO.getEmail(), e.getMessage());
+            attributes.addFlashAttribute("error", "Ошибка при отправке письма подтверждения. Пожалуйста, попробуйте позже.");
             attributes.addFlashAttribute("user", userDTO);
             return "redirect:/register";
         }
@@ -122,6 +131,9 @@ public class RegistrationController {
         }
 
         model.addAttribute("email", email);
+        model.addAttribute("mailUrl", getMailServiceUrl(email));
+        model.addAttribute("mailServiceName", getMailServiceName(email));
+
         return "registration/success";
     }
 
@@ -143,7 +155,6 @@ public class RegistrationController {
     @GetMapping("/login")
     public String loginPage(@RequestParam(value = "error", required = false) String error,
                             @RequestParam(value = "logout", required = false) String logout,
-                            @RequestParam(value = "verified", required = false) String verified,
                             @RequestParam(value = "email", required = false) String email,
                             Model model) {
         if (error != null) {
@@ -167,10 +178,6 @@ public class RegistrationController {
             model.addAttribute("messageType", "success");
         }
 
-        if (verified != null) {
-            model.addAttribute("message", "Email успешно подтвержден! Теперь вы можете войти.");
-            model.addAttribute("messageType", "success");
-        }
         return "registration/login";
     }
 }

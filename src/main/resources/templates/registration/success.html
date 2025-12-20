@@ -42,9 +42,16 @@
             🔄 Отправить повторно
         </a>
 
-        <a id="mail-button" href="#" target="_blank" class="btn btn-primary" th:data-email="${email}">
-            📨 Открыть почту
-        </a>
+        <!-- Кнопка почты -->
+        <div style="text-align: center;">
+            <a class="btn btn-primary"
+               style="display: inline-block; padding: 10px 20px; background: #800080; color: white;
+                  text-decoration: none; border-radius: 5px; font-weight: bold;"
+               th:href="${mailUrl}"
+               target="_blank">
+                📨 Открыть <span th:text="${mailServiceName}"></span>
+            </a>
+        </div>
     </div>
 
     <div class="resend-link">
@@ -53,6 +60,8 @@
     </div>
 </div>
 
+<!-- Подключаем общий auth.js -->
 <script th:src="@{/Scripts/auth.js}"></script>
+
 </body>
 </html>
