@@ -23,6 +23,8 @@ import vsu.cs.oop2.Services.UserService;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -255,5 +257,41 @@ public class API {
                 .build();
 
         return ApiResponse.success("Трек успешно загружен", uploadData);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users/search")
+    public ApiResponse<UserSearchData> searchUsers(@RequestParam(required = false) String search, Principal principal) {
+
+        User admin = userService.getUserByEmail(principal.getName());
+
+        List<User> users;
+        if (search != null && !search.trim().isEmpty()) {
+            users = userService.searchUsers(search);
+        } else {
+            users = userService.getAllUsers();
+        }
+
+        List<UserData> userData = users.stream()
+                .map(user -> UserData.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .role(user.getRole().name())
+                    .emailVerified(user.isEmailVerified())
+                    .username(user.getUsername())
+                    .build())
+                .toList();
+
+        UserSearchData searchData = UserSearchData.builder()
+                .users(userData)
+                .totalUsers(userService.countAllUsers())
+                .verifiedUsers(userService.countVerifiedUsers())
+                .currentUserId(admin.getId())
+                .build();
+
+        log.info("ADMIN USER SEARCH - user: {}, search: '{}', results: {}",
+                admin.getId(), search, users.size());
+
+        return ApiResponse.success(searchData);
     }
 }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Управление пользователями</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('admin')}"></header>
+
+<div class="container">
+    <div th:replace="~{fragments/sidebar :: sidebar('admin')}"></div>
+
+    <div class="main-genre-music">
+        <!-- Заголовок -->
+        <div class="admin-full-header">
+            <div class="admin-header-content">
+                <div class="admin-crown">👥</div>
+                <div>
+                    <h1 class="admin-title">Управление пользователями</h1>
+                    <p class="admin-subtitle">Всего пользователей: <span id="totalUsers" th:text="${totalUsers}">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сообщения -->
+        <div th:if="${message}" class="admin-message">
+            <span th:text="${message}"></span>
+        </div>
+
+        <!-- Объединенный блок: поиск + таблица -->
+        <div class="admin-content-card">
+            <!-- Панель поиска -->
+            <div class="search-section">
+                <div class="search-header">
+                    <h2 class="search-title">
+                        <span class="search-icon">🔍</span>
+                        Поиск пользователей
+                    </h2>
+                    <div class="search-form">
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Введите имя, email или ID..."
+                               class="search-input">
+                        <button type="button" id="searchBtn" class="search-btn">
+                            <span>🔍</span> Найти
+                        </button>
+                        <button type="button" id="clearBtn" class="clear-btn">
+                            Очистить
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок с данными (таблица или сообщение) -->
+            <div class="data-section">
+                <div id="usersTableContent">
+                    <!-- Контент будет загружен через JS -->
+                    <div class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Загрузка пользователей...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Навигация -->
+            <div class="admin-nav">
+                <a th:href="@{/admin/}" class="btn secondary">
+                    ← Назад в админ-панель
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script th:src="@{/js/admin-search.js}"></script>
+</body>
+</html>

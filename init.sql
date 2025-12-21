@@ -10,7 +10,8 @@ CREATE TABLE userdata (
                           password_reset_token VARCHAR(255),
                           password_reset_expiry TIMESTAMP,
                           last_password_reset_request TIMESTAMP,
-                          last_verification_sent TIMESTAMP  -- НОВОЕ ПОЛЕ
+                          last_verification_sent TIMESTAMP,
+                          user_role VARCHAR(50) NOT NULL DEFAULT 'USER'
 );
 
 -- Создание таблицы треков
@@ -32,14 +33,17 @@ CREATE TABLE likes (
                        UNIQUE(user_id, track_id)
 );
 
--- Вставка администратора
-INSERT INTO userdata (username, email, password, is_email_verified)
+-- Вставка администратора С РОЛЬЮ ADMIN
+INSERT INTO userdata (username, email, password, is_email_verified, user_role)
 VALUES (
            'Merkury',
            'elez4@yandex.ru',
            '$2a$12$YYKyAAx1Lj/o6QDGG9RyjO57wsklFMZrMrpO1VCx3twGSGTgBS5ma',
-           true
-       ) ON CONFLICT (email) DO NOTHING;
+           true,
+           'ADMIN'
+       ) ON CONFLICT (email) DO UPDATE
+    SET user_role = 'ADMIN'
+WHERE userdata.email = 'elez4@yandex.ru';
 
 -- Вставка треков
 DO $$
@@ -51,12 +55,13 @@ DO $$
 
         -- Если админ не найден, создаем его и получаем ID
         IF admin_id IS NULL THEN
-            INSERT INTO userdata (username, email, password, is_email_verified)
+            INSERT INTO userdata (username, email, password, is_email_verified, user_role)
             VALUES (
                        'Merkury',
                        'elez4@yandex.ru',
                        '$2a$12$YYKyAAx1Lj/o6QDGG9RyjO57wsklFMZrMrpO1VCx3twGSGTgBS5ma',
-                       true
+                       true,
+                       'ADMIN'
                    ) RETURNING id INTO admin_id;
         END IF;
 

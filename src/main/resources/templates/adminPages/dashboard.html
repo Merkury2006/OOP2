@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: head}">
+    <title>Админ панель</title>
+</head>
+<body>
+
+<header th:replace="~{fragments/header :: header('admin')}"></header>
+
+<div class="container">
+    <div th:replace="~{fragments/sidebar :: sidebar('admin')}"></div>
+
+    <div class="main-genre-music">
+        <!-- Заголовок на весь экран -->
+        <div class="admin-full-header">
+            <div class="admin-header-content">
+                <div class="admin-crown">👑</div>
+                <div>
+                    <h1 class="admin-title">Админ панель</h1>
+                    <p class="admin-subtitle">Добро пожаловать, <span th:text="${admin.username}"></span>!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной контент: статистика слева, информация справа -->
+        <div class="admin-content-grid">
+            <!-- Левая колонка: Статистика -->
+            <div class="admin-stats-column">
+                <h2 class="section-title">📊 Статистика системы</h2>
+
+                <div class="stats-grid-full">
+                    <div class="stat-card-full">
+                        <div class="stat-icon-full">👥</div>
+                        <div class="stat-info-full">
+                            <h3>Всего пользователей</h3>
+                            <p class="stat-number-full" th:text="${totalUsers}">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-full">
+                        <div class="stat-icon-full">✅</div>
+                        <div class="stat-info-full">
+                            <h3>Подтвержденных email</h3>
+                            <p class="stat-number-full" th:text="${verifiedUsers}">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-full">
+                        <div class="stat-icon-full">🎵</div>
+                        <div class="stat-info-full">
+                            <h3>Всего треков</h3>
+                            <p class="stat-number-full" th:text="${totalTracks}">0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card-full">
+                        <div class="stat-icon-full">❤️</div>
+                        <div class="stat-info-full">
+                            <h3>Всего лайков</h3>
+                            <p class="stat-number-full" th:text="${totalLikes}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Информация об админе -->
+            <div class="admin-info-column">
+                <div class="system-info-full">
+                    <h2 class="section-title">👤 Информация о Вас</h2>
+
+                    <div class="info-grid-full">
+                        <div class="info-item-full">
+                            <h4>Роль</h4>
+                            <p class="info-value-full admin-role-badge" th:text="${admin.role.name()}">ADMIN</p>
+                        </div>
+                        <div class="info-item-full">
+                            <h4>Email</h4>
+                            <p class="info-value-full email-value" th:text="${admin.email}">admin@example.com</p>
+                        </div>
+                        <div class="info-item-full">
+                            <h4>Статус email</h4>
+                            <div class="info-value-full" th:if="${admin.emailVerified}">
+                                <span class="verified-badge">✅ Подтвержден</span>
+                            </div>
+                            <div class="info-value-full" th:unless="${admin.emailVerified}">
+                                <span class="not-verified-badge">❌ Не подтвержден</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Быстрые действия -->
+                <div class="admin-actions-full">
+                    <h2 class="section-title">⚡ Быстрые действия</h2>
+                    <div class="action-buttons-full">
+                        <a th:href="@{/admin/users}" class="action-btn-full primary">
+                            <span class="action-icon-full">👥</span>
+                            Управление пользователями
+                        </a>
+                        <a th:href="@{/}" class="action-btn-full">
+                            <span class="action-icon-full">🏠</span>
+                            На главную
+                        </a>
+                        <!-- Выход через POST-запрос с CSRF-токеном -->
+                        <form th:action="@{/logout}" method="post" style="width: 100%; margin: 0;">
+                            <button type="submit" class="action-btn-full logout-btn">
+                                <span class="action-icon-full">🚪</span>
+                                Выйти
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

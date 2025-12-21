@@ -1,10 +1,13 @@
 package vsu.cs.oop2.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vsu.cs.oop2.DTO.Authorization.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -60,4 +63,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmailVerificationToken(String emailVerificationToken);
 
     Optional<User> findUserByPasswordResetToken(String token);
+
+    @Query("SELECT count(*) FROM User u WHERE u.emailVerified = true")
+    long countByIsEmailVerified();
+
+    @Query("SELECT u FROM User u WHERE " +
+            "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "CAST(u.id AS string) LIKE CONCAT(:search, '%')")
+    List<User> searchUsers(@Param("search") String search);
 }

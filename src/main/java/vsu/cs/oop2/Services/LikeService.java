@@ -74,4 +74,8 @@ public class LikeService {
             return false;
         }
     }
+
+    public long countAllLikes() {
+        return likeRepository.count();
+    }
 }

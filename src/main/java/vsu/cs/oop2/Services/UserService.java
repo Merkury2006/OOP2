@@ -21,6 +21,7 @@ import vsu.cs.oop2.Repository.UserRepository;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -123,13 +124,30 @@ public class UserService implements UserDetailsService {
             if (!user.isEmailVerified()) {
                 throw new DisabledException("Email не подтвержден. Проверьте вашу почту.");
             }
+
             return new org.springframework.security.core.userdetails.User(
                     user.getEmail(),
                     user.getPassword(),
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getAuthority()))
             );
         } catch (UserNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage());
         }
+    }
+
+    public long countAllUsers() {
+        return userRepository.count();
+    }
+
+    public long countVerifiedUsers() {
+        return userRepository.countByIsEmailVerified();
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<User> searchUsers(String search) {
+        return userRepository.searchUsers(search.toLowerCase());
     }
 }

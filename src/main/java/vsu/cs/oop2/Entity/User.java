@@ -33,6 +33,10 @@ public class User {
     private String email;    // Email (уникальный, для входа)
     private String password; // Хешированный пароль (BCrypt)
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role")
+    private UserRole role = UserRole.USER;
+
     @Column(name = "is_email_verified", nullable = false)
     private boolean emailVerified = false;
 

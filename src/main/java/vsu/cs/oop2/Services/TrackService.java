@@ -249,4 +249,8 @@ public class TrackService {
                 fileName.endsWith(".png") || fileName.endsWith(".gif") ||
                 fileName.endsWith(".webp");
     }
+
+    public long countAllTracks() {
+        return trackRepository.count();
+    }
 }
