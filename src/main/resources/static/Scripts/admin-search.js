@@ -1,5 +1,3 @@
-// Файл: /static/js/admin-search.js
-
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
@@ -82,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 params.append('search', searchTerm);
             }
 
-            const response = await fetch(`/api/users/search?${params.toString()}`, {
+            const response = await fetch(`/admin/users/search?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -184,21 +182,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isCurrentUser) {
                 const newRole = roleStr === 'ADMIN' ? 'USER' : 'ADMIN';
                 const buttonText = roleStr === 'ADMIN' ? '↓ USER' : '↑ ADMIN';
+                const buttonTitle = roleStr === 'ADMIN' ? 'Понизить до обычного пользователя' : 'Повысить до администратора';
 
                 html += `
-                    <form method="post" action="/admin/users/${user.id}/role" 
-                          onsubmit="return window.confirmRoleChange('${escapeHtml(user.username || '')}', '${newRole}')">
-                        <input type="hidden" name="_csrf" value="${getCsrfToken()}">
-                        <input type="hidden" name="search" value="${currentSearch}">
-                        <button type="submit" class="btn-small warning">${buttonText}</button>
-                    </form>
+                    <button type="button" class="btn-small warning" 
+                            onclick="changeUserRole(${user.id}, '${escapeHtml(user.username || '')}', '${newRole}')"
+                            title="${buttonTitle}">
+                        ${buttonText}
+                    </button>
                     
-                    <form method="post" action="/admin/users/${user.id}/delete" 
-                          onsubmit="return window.confirmDelete('${escapeHtml(user.username || '')}')">
-                        <input type="hidden" name="_csrf" value="${getCsrfToken()}">
-                        <input type="hidden" name="search" value="${currentSearch}">
-                        <button type="submit" class="btn-small danger">🗑️</button>
-                    </form>
+                    <button type="button" class="btn-small danger" 
+                            onclick="deleteUser(${user.id}, '${escapeHtml(user.username || '')}')"
+                            title="Удалить пользователя">
+                        🗑️
+                    </button>
                 `;
             } else {
                 html += `<span class="text-muted">Это вы</span>`;
@@ -218,13 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
 
         usersTableContent.innerHTML = html;
-    }
-
-    // Получение CSRF токена
-    function getCsrfToken() {
-        return document.querySelector('meta[name="_csrf"]')?.content ||
-            document.querySelector('input[name="_csrf"]')?.value ||
-            '';
     }
 
     function showLoading() {
@@ -250,13 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    window.clearSearch = function() {
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        performSearch('');
-    };
-
     function updateUrl(searchTerm) {
         const url = new URL(window.location);
 
@@ -276,15 +259,172 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
     }
 
-    // Функции подтверждения
-    window.confirmRoleChange = function(username, newRole) {
+    // Функция для обновления таблицы после действия
+    function refreshTable() {
+        loadUsers(currentSearch);
+    }
+
+    // =============================================
+    // ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ
+    // =============================================
+
+    // Изменить роль пользователя
+    window.changeUserRole = async function(userId, username, newRole) {
         const action = newRole === 'ADMIN' ? 'повысить до ADMIN' : 'понизить до USER';
-        return confirm(`Вы уверены, что хотите ${action} пользователя "${username}"?`);
+
+        if (!confirm(`Вы уверены, что хотите ${action} пользователя "${username}"?`)) {
+            return;
+        }
+
+        try {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+            const params = new URLSearchParams();
+            params.append('newRole', newRole);
+
+            const headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                ...(csrfToken && csrfHeader && { [csrfHeader]: csrfToken })
+            };
+
+
+            const response = await fetch(`/admin/users/${userId}/role`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: headers,
+                body: params.toString()
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showSuccessMessage(`Роль пользователя ${username} успешно изменена на ${newRole}`);
+                refreshTable(); // Обновляем таблицу
+            } else if (result.status === 403) {
+                showErrorMessage(result.message || 'Доступ запрещен. Нельзя изменить свою собственную роль.');
+            } else if (result.status === 404) {
+                showErrorMessage(result.message || 'Пользователь не найден. Возможно, он был удален.');
+                refreshTable();
+            } else {
+                showErrorMessage(result.message || 'Ошибка при изменении роли');
+            }
+
+        } catch (error) {
+            console.error('Ошибка при изменении роли:', error);
+            showErrorMessage('Ошибка при изменении роли: ' + error.message);
+        }
     };
 
-    window.confirmDelete = function(username) {
-        return confirm(`Вы уверены, что хотите удалить пользователя "${username}"?`);
+    // Удалить пользователя
+    window.deleteUser = async function(userId, username) {
+        if (!confirm(`Вы уверены, что хотите удалить пользователя "${username}"? Это действие необратимо!`)) {
+            return;
+        }
+
+        try {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+            const headers = {
+                'Accept': 'application/json',
+                ...(csrfToken && csrfHeader && { [csrfHeader]: csrfToken })
+            };
+
+            const response = await fetch(`/admin/users/${userId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: headers
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showSuccessMessage(`Пользователь ${username} успешно удален`);
+                refreshTable();
+            } else if (result.status === 403) {
+                let errorMessage = result.message || 'Доступ запрещен.';
+                if (result.message && result.message.includes('самого себя')) {
+                    errorMessage = 'Вы не можете удалить свой собственный аккаунт.';
+                } else if (result.message && result.message.includes('другого админа')) {
+                    errorMessage = 'Вы не можете удалить другого администратора.';
+                }
+
+                showErrorMessage(errorMessage);
+            } else if (result.status === 404) {
+                showErrorMessage(result.message || 'Пользователь не найден. Возможно, он уже был удален.');
+                refreshTable();
+            } else {
+                showErrorMessage(result.message || `Ошибка при удалении пользователя (код: ${response.status})`);
+            }
+
+        } catch (error) {
+            console.error('Ошибка при удалении пользователя:', error);
+            showErrorMessage('Ошибка при удалении пользователя: ' + error.message);
+        }
     };
+
+    // Очистить поиск
+    window.clearSearch = function() {
+        if (searchInput) {
+            searchInput.value = '';
+        }
+        performSearch('');
+    };
+
+    // Получение CSRF токена
+    function getCsrfToken() {
+        return document.querySelector('meta[name="_csrf"]')?.content ||
+            document.querySelector('input[name="_csrf"]')?.value ||
+            '';
+    }
+
+    // Показать сообщение об успехе
+    function showSuccessMessage(message) {
+        showMessage(message, 'success');
+    }
+
+    // Показать сообщение об ошибке
+    function showErrorMessage(message) {
+        showMessage(message, 'error');
+    }
+
+    // Показать сообщение
+    function showMessage(message, type) {
+        // Создаем элемент сообщения
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `admin-message ${type === 'error' ? 'error' : ''}`;
+        messageDiv.innerHTML = `
+            <span>${type === 'success' ? '✅' : '❌'} ${escapeHtml(message)}</span>
+        `;
+
+        // Вставляем перед блоком поиска
+        const contentCard = document.querySelector('.admin-content-card');
+        if (contentCard) {
+            const existingMessage = contentCard.querySelector('.admin-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            contentCard.insertBefore(messageDiv, contentCard.firstChild);
+
+            // Автоматически скрываем через 5 секунд
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.transition = 'opacity 0.5s';
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove();
+                        }
+                    }, 500);
+                }
+            }, 5000);
+        } else {
+            // Если не нашли карточку, показываем alert
+            alert(message);
+        }
+    }
 
     // Обработчик истории браузера
     window.addEventListener('popstate', function(event) {
@@ -304,6 +444,22 @@ document.addEventListener('DOMContentLoaded', function() {
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        /* Анимация для сообщений */
+        .admin-message {
+            animation: fadeInDown 0.3s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     `;
     document.head.appendChild(style);

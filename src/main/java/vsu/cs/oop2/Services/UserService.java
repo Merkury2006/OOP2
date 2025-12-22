@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vsu.cs.oop2.DTO.Authorization.RegistrationRequest;
 import vsu.cs.oop2.Entity.User;
+import vsu.cs.oop2.Entity.UserRole;
 import vsu.cs.oop2.Exceptions.UserNotFoundException;
 import vsu.cs.oop2.Repository.UserRepository;
 
@@ -101,6 +103,50 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    public long countAllUsers() {
+        return userRepository.count();
+    }
+
+    public long countVerifiedUsers() {
+        return userRepository.countByIsEmailVerified();
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public List<User> searchUsers(String search) {
+        return userRepository.searchUsers(search.toLowerCase());
+    }
+
+    public void changeUserRole(Long id, String newRole, Long adminId) {
+        if (id.equals(adminId)) {
+            throw new AccessDeniedException("Нельзя изменить свою роль");
+        }
+
+        User user = userRepository.findUserById(id).orElseThrow(
+                () -> new UserNotFoundException(id)
+        );
+
+        user.setRole(UserRole.valueOf(newRole));
+    }
+
+    public void deleteUser(Long id, Long adminId) {
+        if (id.equals(adminId)) {
+            throw new AccessDeniedException("Нельзя удалить самого себя");
+        }
+
+        User user = userRepository.findUserById(id).orElseThrow(
+                () -> new UserNotFoundException(id)
+        );
+
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            throw  new AccessDeniedException("Нельзя удалить другого админа");
+        }
+
+        userRepository.delete(user);
+    }
+
 
     /**
      * ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ДЛЯ SPRING SECURITY
@@ -133,21 +179,5 @@ public class UserService implements UserDetailsService {
         } catch (UserNotFoundException e) {
             throw new UsernameNotFoundException(e.getMessage());
         }
-    }
-
-    public long countAllUsers() {
-        return userRepository.count();
-    }
-
-    public long countVerifiedUsers() {
-        return userRepository.countByIsEmailVerified();
-    }
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public List<User> searchUsers(String search) {
-        return userRepository.searchUsers(search.toLowerCase());
     }
 }

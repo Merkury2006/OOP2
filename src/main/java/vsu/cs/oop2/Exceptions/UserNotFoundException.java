@@ -20,7 +20,7 @@ public class UserNotFoundException extends AppException{
      * Используется для логирования, но не показывается пользователю
      * в production для безопасности.
      */
-    private final String email;
+    private final Object identificator;
 
     /**
      * СОЗДАНИЕ ИСКЛЮЧЕНИЯ ДЛЯ ПОЛЬЗОВАТЕЛЯ
@@ -29,6 +29,11 @@ public class UserNotFoundException extends AppException{
      */
     public UserNotFoundException(String email) {
         super("Пользователь с email " + email + " не найден");
-        this.email = email;
+        this.identificator = email;
+    }
+
+    public UserNotFoundException(Long id) {
+        super("Пользователь с ID " + id + " не найден");
+        this.identificator = id;
     }
 }
