@@ -68,6 +68,10 @@ public class UserService implements UserDetailsService {
         return userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
+    public User getUserById(Long id) {
+        return userRepository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
+    }
+
 
     /**
      * РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ

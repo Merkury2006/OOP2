@@ -175,13 +175,8 @@ public class API {
     @DeleteMapping("/delete/{trackId}")
     public ApiResponse<Void> delete(@PathVariable Long trackId, Principal principal) throws IOException {
         User user = userService.getUserByEmail(principal.getName());
-        Track track = trackService.getTrackById(trackId);
 
-        if (!track.getUserIdAdd().equals(user.getId())) {
-            throw new AccessDeniedException("Вы не можете удалить этот трек");
-        }
-
-        trackService.deleteTrack(track);
+        Track track = trackService.deleteTrack(trackId, user);
         log.info("DELETE successful - trackId: {}, userId: {}, trackName: {}",
                 trackId, user.getId(), track.getTrackName());
 

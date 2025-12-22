@@ -2,6 +2,7 @@ package vsu.cs.oop2.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,5 +60,7 @@ public class User {
     private LocalDateTime lastPasswordResetRequest;
 
     @OneToMany(mappedBy = "userAdded", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Track> uploadedTracks = new ArrayList<>();  // Загруженные пользователем треки
+
 }

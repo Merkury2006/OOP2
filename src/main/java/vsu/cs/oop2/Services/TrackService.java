@@ -7,12 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import vsu.cs.oop2.Entity.Track;
 import vsu.cs.oop2.Entity.User;
+import vsu.cs.oop2.Entity.UserRole;
 import vsu.cs.oop2.Exceptions.ResourceNotFoundException;
 import vsu.cs.oop2.Exceptions.ValidationException;
 import vsu.cs.oop2.Repository.TrackRepository;
 
 import java.io.IOException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 /**
@@ -38,6 +40,7 @@ import java.util.List;
 public class TrackService {
     private final TrackRepository trackRepository;
     private final FileStorageService fileStorageService;
+    private final UserService userService;
 
     @Value("${app.upload.max-audio-size}")
     private Integer MAX_AUDIO_SIZE;
@@ -97,7 +100,7 @@ public class TrackService {
      * @see vsu.cs.oop2.Controllers.MainController#myMusicPage
      */
     public List<Track> getAllTracks() {
-        return trackRepository.findAll();
+        return trackRepository.findAllOrderByIdDesc();
     }
 
 
@@ -106,19 +109,30 @@ public class TrackService {
      *
      * Удаляет трек из системы: удаляет файлы с диска и запись из БД.
      * Использует транзакцию для обеспечения атомарности операции.
-     *
-     * @param track Трек для удаления
      * @throws IOException при ошибках удаления файлов
      *
      * @apiNote Использует FileStorageService для удаления файлов
      * @see FileStorageService#deleteFile(String, String)
      */
     @Transactional
-    public void deleteTrack(Track track) throws IOException {
+    public Track deleteTrack(Long trackId, User user) throws IOException {
+        Track track = getTrackById(trackId);
+
+        if (!canDeleteTrack(track, user)) {
+            throw new AccessDeniedException(String.format("Пользователь %s не может удалить трек %s", user.getId(), track.getId()));
+        }
+
         fileStorageService.deleteFile(track.getTrackUrl(), "audio");
         fileStorageService.deleteFile(track.getImageUrl(), "image");
 
         trackRepository.delete(track);
+        return track;
+    }
+
+    private boolean canDeleteTrack(Track track, User user) {
+        boolean isOwner = track.getUserIdAdd().equals(user.getId());
+        boolean isAdmin = user.getRole() == UserRole.ADMIN;
+        return isOwner || isAdmin;
     }
 
 
@@ -252,5 +266,9 @@ public class TrackService {
 
     public long countAllTracks() {
         return trackRepository.count();
+    }
+
+    public List<Track> searchTracks(String search) {
+        return trackRepository.searchTracks(search.toLowerCase());
     }
 }

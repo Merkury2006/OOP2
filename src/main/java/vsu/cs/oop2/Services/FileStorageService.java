@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 /**
@@ -63,7 +64,7 @@ public class FileStorageService {
     public void saveFile(MultipartFile file, String fileName, String type) throws IOException {
         Path filePath = getFilePath(fileName, type);
         Files.createDirectories(filePath.getParent());
-        file.transferTo(filePath);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
     }
 
 
@@ -92,24 +93,27 @@ public class FileStorageService {
 
         if (Files.exists(filePath)) {
             Files.delete(filePath);
+            System.out.println("Файл удален: " + filePath);
+        } else {
+            System.out.println("Файл не найден: " + filePath);
         }
     }
 
 
-    /**
-     * ПОЛУЧЕНИЕ РЕСУРСА ДЛЯ ТИПА ФАЙЛА
-     *
-     * Внутренний метод для получения Spring Resource соответствующей директории.
-     *
-     * @param type Тип файла: "audio" для аудио, "image" для изображений
-     * @return Resource для соответствующей директории
-     *
-     * @apiNote Внутренний вспомогательный метод
-     */
-    private Resource getResource(String type) {
-        String path = type.equals("audio") ? musicPath : imagePath;
-        return resourceLoader.getResource("classpath:" + path);
-    }
+//    /**
+//     * ПОЛУЧЕНИЕ РЕСУРСА ДЛЯ ТИПА ФАЙЛА
+//     *
+//     * Внутренний метод для получения Spring Resource соответствующей директории.
+//     *
+//     * @param type Тип файла: "audio" для аудио, "image" для изображений
+//     * @return Resource для соответствующей директории
+//     *
+//     * @apiNote Внутренний вспомогательный метод
+//     */
+//    private Resource getResource(String type) {
+//        String path = type.equals("audio") ? musicPath : imagePath;
+//        return resourceLoader.getResource("classpath:" + path);
+//    }
 
 
     /**
@@ -124,9 +128,9 @@ public class FileStorageService {
      *
      * @apiNote Внутренний вспомогательный метод
      */
-    private Path getFilePath(String fileName, String type) throws IOException {
-        Resource resource = getResource(type);
-        return Paths.get(resource.getFile().getAbsolutePath(), fileName);
+    private Path getFilePath(String fileName, String type) {
+        String path = type.equals("audio") ? musicPath : imagePath;
+        return Paths.get(path, fileName);
     }
 
 

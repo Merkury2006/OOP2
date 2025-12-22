@@ -1,6 +1,8 @@
 package vsu.cs.oop2.Repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import vsu.cs.oop2.Entity.Track;
 
@@ -53,4 +55,15 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
      * @see vsu.cs.oop2.Controllers.MainController#uploadPage
      */
     List<Track> findByUserAddedIdOrderByIdDesc(Long id);
+
+    @Query("SELECT t FROM Track t ORDER BY t.id DESC")
+    List<Track> findAllOrderByIdDesc();
+
+    @Query("SELECT t FROM Track t WHERE " +
+            "CAST(t.id AS string) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(t.artist) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(t.genre) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+            "LOWER(t.trackName) LIKE LOWER(CONCAT('%', :search, '%'))" +
+            "ORDER BY t.id DESC")
+    List<Track> searchTracks(@Param("search") String search);
 }

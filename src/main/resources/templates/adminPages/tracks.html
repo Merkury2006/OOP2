@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/header :: head}">
-    <title>Управление пользователями</title>
+    <title>Управление треками</title>
 </head>
 <body>
 
@@ -14,10 +14,10 @@
         <!-- Заголовок -->
         <div class="admin-full-header">
             <div class="admin-header-content">
-                <div class="admin-crown">👥</div>
+                <div class="admin-crown">🎵</div>
                 <div>
-                    <h1 class="admin-title">Управление пользователями</h1>
-                    <p class="admin-subtitle">Всего пользователей: <span id="totalUsers" th:text="${totalUsers}">0</span></p>
+                    <h1 class="admin-title">Управление треками</h1>
+                    <p class="admin-subtitle">Всего треков: <span id="totalTracks" th:text="${totalTracks}">0</span></p>
                 </div>
             </div>
         </div>
@@ -34,12 +34,12 @@
                 <div class="search-header">
                     <h2 class="search-title">
                         <span class="search-icon">🔍</span>
-                        Поиск пользователей
+                        Поиск треков
                     </h2>
                     <div class="search-form">
                         <input type="text"
                                id="searchInput"
-                               placeholder="Введите имя, email или ID..."
+                               placeholder="Введите название, артиста или ID..."
                                class="search-input">
                         <button type="button" id="searchBtn" class="search-btn">
                             <span>🔍</span> Найти
@@ -53,11 +53,11 @@
 
             <!-- Блок с данными (таблица или сообщение) -->
             <div class="data-section">
-                <div id="usersTableContent">
+                <div id="tracksTableContent">
                     <!-- Контент будет загружен через JS -->
                     <div class="loading-state">
                         <div class="spinner"></div>
-                        <p>Загрузка пользователей...</p>
+                        <p>Загрузка треков...</p>
                     </div>
                 </div>
             </div>
@@ -67,8 +67,8 @@
                 <a th:href="@{/admin/}" class="btn secondary">
                     ← Назад в админ-панель
                 </a>
-                <a th:href="@{/admin/tracks}" class="btn">
-                    👥 Управление треками
+                <a th:href="@{/admin/users}" class="btn">
+                    👥 Управление пользователями
                 </a>
             </div>
         </div>
@@ -77,6 +77,9 @@
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script th:src="@{/js/admin-search.js}"></script>
+<!-- Подключаем скрипты -->
+<script th:src="@{/js/popup-utils.js}"></script>
+<script th:src="@{/js/admin-common.js}"></script>
+<script th:src="@{/js/admin-tracks.js}"></script>
 </body>
 </html>

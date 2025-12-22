@@ -78,4 +78,8 @@ public class LikeService {
     public long countAllLikes() {
         return likeRepository.count();
     }
+
+    public List<Like> getTrackLikes(Track track) {
+        return likeRepository.findByTrack(track);
+    }
 }

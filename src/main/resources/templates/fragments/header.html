@@ -26,7 +26,9 @@
         <a th:href="@{/my-music}" th:classappend="${activePage == 'my-music' ? 'head-item-active' : 'head-item'}">Моя музыка</a>
         <a th:href="@{/about}" th:classappend="${activePage == 'aboutUs' ? 'head-item-active' : 'head-item'}">О нас</a>
         <a th:href="@{/upload}" th:classappend="${activePage == 'upload' ? 'head-item-active' : 'head-item'}">Добавить музыку</a>
-        <a th:if="${#authorization.expression('hasRole(''ADMIN'')')} " th:href="@{/admin/}" th:classappend="${activePage == 'upload' ? 'head-item-active' : 'head-item'}">Админ панель</a>
+        <a sec:authorize="hasRole('ADMIN')"
+           th:href="@{/admin/}"
+           th:classappend="${activePage == 'admin' ? 'head-item-active' : 'head-item'}">Админ панель</a>
     </div>
 
     <div class="theme-switch">

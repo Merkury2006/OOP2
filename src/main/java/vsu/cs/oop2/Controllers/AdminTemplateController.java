@@ -49,4 +49,9 @@ public class AdminTemplateController {
     public String usersPage() {
         return "adminPages/users"; //Реализация всего остального через JS
     }
+
+    @GetMapping("/tracks")
+    public String tracksPage() {
+        return "adminPages/tracks"; //Реализация всего остального через JS
+    }
 }

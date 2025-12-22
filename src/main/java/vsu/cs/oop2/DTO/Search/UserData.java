@@ -1,4 +1,4 @@
-package vsu.cs.oop2.DTO;
+package vsu.cs.oop2.DTO.Search;
 
 import lombok.Builder;
 import lombok.Data;
