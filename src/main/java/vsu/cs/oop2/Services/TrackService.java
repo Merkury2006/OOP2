@@ -1,10 +1,15 @@
 package vsu.cs.oop2.Services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import vsu.cs.oop2.Config.FilePathResolver;
+import vsu.cs.oop2.DTO.DownloadData;
 import vsu.cs.oop2.Entity.Track;
 import vsu.cs.oop2.Entity.User;
 import vsu.cs.oop2.Entity.UserRole;
@@ -15,6 +20,8 @@ import vsu.cs.oop2.Repository.TrackRepository;
 import java.io.IOException;
 
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -40,7 +47,7 @@ import java.util.List;
 public class TrackService {
     private final TrackRepository trackRepository;
     private final FileStorageService fileStorageService;
-    private final UserService userService;
+    private final FilePathResolver filePathResolver;
 
     @Value("${app.upload.max-audio-size}")
     private Integer MAX_AUDIO_SIZE;
@@ -133,6 +140,25 @@ public class TrackService {
         boolean isOwner = track.getUserIdAdd().equals(user.getId());
         boolean isAdmin = user.getRole() == UserRole.ADMIN;
         return isOwner || isAdmin;
+    }
+
+    public DownloadData downloadTrack(Long trackId) {
+        Track track = this.getTrackById(trackId);
+
+        String url = track.getTrackUrl();
+        if (url.contains("/")) {
+            url = url.substring(url.lastIndexOf("/") + 1);
+        }
+
+        Path filePath = Paths.get(filePathResolver.getResolvedMusicPath()).resolve(url);
+
+        Resource resource = new FileSystemResource(filePath);
+
+        if (!resource.exists()) {
+            throw new ResourceNotFoundException("Трек", trackId);
+        }
+
+        return new DownloadData(resource, track.getTrackName());
     }
 
 

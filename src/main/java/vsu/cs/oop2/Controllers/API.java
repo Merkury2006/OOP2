@@ -132,28 +132,17 @@ public class API {
      */
     @PostMapping("/download/{trackID}")
     public ResponseEntity<Resource> download(@PathVariable Long trackID, Principal principal) throws IOException {
-        Track track = trackService.getTrackById(trackID);
-
-        String path = track.getTrackUrl();
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
-        Resource resource = new ClassPathResource(path);
-
-        if (!resource.exists()) {
-            throw new ResourceNotFoundException("Трек", trackID);
-        }
+        DownloadData downloadData = trackService.downloadTrack(trackID);
 
         log.info("DOWNLOAD successful - trackId: {}, user: {}, size: {} bytes",
-                trackID, principal.getName(), resource.contentLength());
+                trackID, principal.getName(), downloadData.getTrack().contentLength());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + track.getTrackName() + "\"")
+                        "attachment; filename=\"" + downloadData.getTrackName() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(resource.contentLength())
-                .body(resource);
+                .contentLength(downloadData.getTrack().contentLength())
+                .body(downloadData.getTrack());
     }
 
 

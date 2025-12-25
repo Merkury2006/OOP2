@@ -42,8 +42,11 @@ public class FileStorageService {
     @Value("${app.upload.image-path}")
     private String imagePath;
 
-    @Autowired
-    private ResourceLoader resourceLoader;
+    @Value("${app.url.music}")
+    private String musicUrlPath;
+
+    @Value("${app.url.image}")
+    private String imageUrlPath;
 
 
 
@@ -164,7 +167,7 @@ public class FileStorageService {
      * @apiNote URL используется в HTML шаблонах и API ответах
      */
     public String getFileUrl(String fileName, String type) {
-        String path = type.equals("audio") ? musicPath : imagePath;
-        return "/" + path + fileName;
+        String path = type.equals("audio") ? musicUrlPath : imageUrlPath;
+        return path + fileName;
     }
 }
