@@ -32,23 +32,45 @@ import java.util.UUID;
  *
  * Управляет пользовательскими данными и аутентификацией:
  * - Регистрация новых пользователей
- * - Получение пользователей по email
- * - Интеграция с Spring Security (UserDetailsService)
+ * - Аутентификация (интеграция с Spring Security)
+ * - Управление ролями и учетными записями
+ * - Получение статистики пользователей
+ * - Поиск и фильтрация пользователей
  *
  * Реализует UserDetailsService для интеграции с Spring Security.
+ * Все методы выполняются в транзакции (@Transactional).
  *
- * @apiNote Используется для аутентификации и управления учетными записями
  * @see vsu.cs.oop2.Controllers.RegistrationController
+ * @see org.springframework.security.core.userdetails.UserDetailsService
  */
 @Service
 @Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class UserService implements UserDetailsService {
+    /**
+     * Репозиторий для работы с пользователями в БД.
+     * Обеспечивает CRUD операции и кастомные запросы.
+     */
     private final UserRepository userRepository;
+
+    /**
+     * Кодировщик паролей Spring Security.
+     * Используется для безопасного хранения паролей (BCrypt).
+     */
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * Сервис отправки email уведомлений.
+     * Используется для отправки писем подтверждения при регистрации.
+     */
     private final EmailSendService emailSendService;
 
+    /**
+     * Срок действия токена подтверждения email в часах.
+     * Настраивается через application.properties.
+     * @value ${app.email.verificationTokenExpiryHours}
+     */
     @Value("${app.email.verificationTokenExpiryHours}")
     private Integer emailVerificationTokenExpiry;
 
@@ -58,16 +80,29 @@ public class UserService implements UserDetailsService {
      * Основной метод для получения пользователя по email.
      * Используется для идентификации пользователя в системе.
      *
-     * @param email Email пользователя
+     * @param email Email пользователя (уникальный в системе)
      * @return Найденный пользователь
-     * @throws UserNotFoundException если пользователь не найден
+     * @throws UserNotFoundException если пользователь с таким email не найден
      *
-     * @apiNote Используется во многих местах для получения текущего пользователя
+     * @apiNote Используется во многих местах системы для получения текущего пользователя
+     *          Email должен быть уникальным (проверяется при регистрации)
      */
     public User getUserByEmail(String email) {
         return userRepository.findUserByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
+    /**
+     * ПОЛУЧЕНИЕ ПОЛЬЗОВАТЕЛЯ ПО ID
+     *
+     * Получает пользователя по его уникальному идентификатору.
+     * Используется в административных функциях и при работе с другими сущностями.
+     *
+     * @param id Уникальный идентификатор пользователя
+     * @return Найденный пользователь
+     * @throws UserNotFoundException если пользователь с таким ID не найден
+     *
+     * @apiNote ID генерируется базой данных при создании пользователя
+     */
     public User getUserById(Long id) {
         return userRepository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
@@ -76,17 +111,23 @@ public class UserService implements UserDetailsService {
     /**
      * РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ
      *
-     * Создает нового пользователя в системе:
-     * 1. Проверяет уникальность email
-     * 2. Хеширует пароль
-     * 3. Сохраняет пользователя в БД
+     * Создает нового пользователя в системе со следующими шагами:
+     * 1. Проверка уникальности email
+     * 2. Создание объекта User и заполнение данных
+     * 3. Хеширование пароля для безопасного хранения
+     * 4. Генерация токена подтверждения email
+     * 5. Отправка письма подтверждения
+     * 6. Сохранение пользователя в БД
      *
-     * @param request DTO с данными регистрации
-     * @return Созданный пользователь
+     * @param request DTO с данными регистрации (валидируется на уровне контроллера)
+     * @return Созданный пользователь (еще не подтвержденный)
      * @throws IllegalArgumentException если email уже используется
+     * @throws MessagingException при ошибках отправки email
+     * @throws UnsupportedEncodingException при проблемах с кодировкой
      *
-     * @apiNote Использует existsByEmail для быстрой проверки уникальности
-     * @see UserRepository#existsByEmail(String)
+     * @apiNote Пользователь создается с ролью USER по умолчанию
+     *          Email не подтвержден до получения подтверждения
+     * @see RegistrationRequest
      */
     public User registerUser(RegistrationRequest request) throws MessagingException, UnsupportedEncodingException {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -107,22 +148,71 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    /**
+     * ПОЛУЧИТЬ ОБЩЕЕ КОЛИЧЕСТВО ПОЛЬЗОВАТЕЛЕЙ
+     * @return Общее количество пользователей
+     */
     public long countAllUsers() {
         return userRepository.count();
     }
 
+
+    /**
+     * ПОЛУЧИТЬ КОЛИЧЕСТВО ПОДТВЕРЖДЕННЫХ ПОЛЬЗОВАТЕЛЕЙ
+     * Возвращает количество пользователей с подтвержденным email.
+     * @return Количество подтвержденных пользователей
+     */
     public long countVerifiedUsers() {
         return userRepository.countByIsEmailVerified();
     }
 
+
+    /**
+     * ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
+     * Возвращает список всех пользователей в системе.
+     * Используется в административных интерфейсах.
+     * @return Список всех пользователей
+     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+
+    /**
+     * ПОИСК ПОЛЬЗОВАТЕЛЕЙ
+     *
+     * Ищет пользователей по нескольким критериям:
+     * - Имя пользователя (username)
+     * - Email адрес
+     * - ID пользователя (частичное совпадение с начала)
+     *
+     * @param search Строка для поиска (приводится к нижнему регистру)
+     * @return Список найденных пользователей
+     *
+     * @apiNote Регистронезависимый поиск
+     *          При пустой строке возвращает пустой список
+     */
     public List<User> searchUsers(String search) {
         return userRepository.searchUsers(search.toLowerCase());
     }
 
+
+    /**
+     * ИЗМЕНЕНИЕ РОЛИ ПОЛЬЗОВАТЕЛЯ
+     *
+     * Изменяет роль пользователя в системе.
+     * Используется администраторами для управления правами доступа.
+     *
+     * @param id ID пользователя для изменения роли
+     * @param newRole Новая роль (строка, соответствующая UserRole enum)
+     * @param adminId ID администратора, выполняющего операцию
+     * @throws UserNotFoundException если пользователь не найден
+     * @throws AccessDeniedException если попытка изменить свою собственную роль
+     * @throws IllegalArgumentException если указана неверная роль
+     *
+     * @apiNote Только администраторы могут изменять роли
+     *          Администратор не может изменить свою собственную роль
+     */
     public void changeUserRole(Long id, String newRole, Long adminId) {
         if (id.equals(adminId)) {
             throw new AccessDeniedException("Нельзя изменить свою роль");
@@ -135,6 +225,24 @@ public class UserService implements UserDetailsService {
         user.setRole(UserRole.valueOf(newRole));
     }
 
+
+
+    /**
+     * УДАЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
+     *
+     * Удаляет пользователя из системы.
+     * Используется администраторами для управления учетными записями.
+     *
+     * @param id ID пользователя для удаления
+     * @param adminId ID администратора, выполняющего операцию
+     * @throws UserNotFoundException если пользователь не найден
+     * @throws AccessDeniedException если:
+     *         - Попытка удалить самого себя
+     *         - Попытка удалить другого администратора
+     *
+     * @apiNote Удаление каскадируется на связанные сущности (треки, лайки)
+     *          Администраторы не могут удалять других администраторов
+     */
     public void deleteUser(Long id, Long adminId) {
         if (id.equals(adminId)) {
             throw new AccessDeniedException("Нельзя удалить самого себя");
@@ -157,12 +265,17 @@ public class UserService implements UserDetailsService {
      *
      * Реализация UserDetailsService для интеграции с Spring Security.
      * Преобразует User сущность в Spring Security UserDetails.
+     * Выполняет дополнительные проверки:
+     * - Существование пользователя
+     * - Подтверждение email
      *
-     * @param email Email пользователя (используется как username)
-     * @return UserDetails для Spring Security
+     * @param email Email пользователя (используется как username в Spring Security)
+     * @return UserDetails объект для Spring Security
      * @throws UsernameNotFoundException если пользователь не найден
+     * @throws DisabledException если email пользователя не подтвержден
      *
-     * @apiNote Spring Security вызывает этот метод при аутентификации
+     * @apiNote Spring Security вызывает этот метод при каждой попытке аутентификации
+     *          Пользователи с неподтвержденным email не могут войти в систему
      * @see org.springframework.security.core.userdetails.UserDetailsService
      */
     @Override

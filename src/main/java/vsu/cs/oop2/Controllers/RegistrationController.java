@@ -22,18 +22,16 @@ import static vsu.cs.oop2.Utils.getMailServiceName;
 import static vsu.cs.oop2.Utils.getMailServiceUrl;
 
 
+
 /**
  * КОНТРОЛЛЕР РЕГИСТРАЦИИ И АУТЕНТИФИКАЦИИ ПОЛЬЗОВАТЕЛЕЙ
  *
  * Обрабатывает страницы и операции связанные с учетными записями пользователей:
  * - Регистрация новых пользователей
  * - Страница входа в систему (логин)
+ * - Страница успешной регистрации
  *
  * Использует Spring Validation для проверки входных данных.
- * Логирует ключевые события регистрации и аутентификации.
- *
- * @author vsu.cs.oop2
- * @version 1.0
  */
 @Slf4j
 @Controller
@@ -75,23 +73,25 @@ public class RegistrationController {
      * ОБРАБОТКА ЗАПРОСА НА РЕГИСТРАЦИЮ ПОЛЬЗОВАТЕЛЯ
      *
      * Принимает и валидирует данные регистрации, создает нового пользователя.
-     * В случае успеха перенаправляет на страницу входа с сообщением об успехе.
+     * В случае успеха перенаправляет на страницу подтверждения email.
      * В случае ошибок возвращает на форму регистрации с соответствующими сообщениями.
      *
      * @param userDTO DTO с данными регистрации пользователя (валидируется аннотациями)
      * @param result Результат валидации Spring Validation
      * @param attributes Атрибуты для перенаправления (flash-атрибуты)
-     * @return Редирект на /register (при ошибках) или /login (при успехе)
+     * @return Редирект на /register (при ошибках) или /registration-success (при успехе)
      *
      * @apiNote POST /register
      * @see RegistrationRequest
      * @see UserService#registerUser(RegistrationRequest)
-     * @throws IllegalArgumentException если email уже используется
+     * @throws IllegalArgumentException если email уже используется или данные некорректны
+     * @throws MessagingException если возникла ошибка при отправке email подтверждения
+     * @throws UnsupportedEncodingException если возникла проблема с кодировкой символов в email
      */
     @PostMapping("/register")
     public String registerUser(@Valid @ModelAttribute("user") RegistrationRequest userDTO,
                                BindingResult result,
-                               RedirectAttributes attributes) throws MessagingException {
+                               RedirectAttributes attributes) {
         log.info("Registration attempt for email: {}", userDTO.getEmail());
 
         if (result.hasErrors()) {
@@ -124,6 +124,18 @@ public class RegistrationController {
     }
 
 
+    /**
+     * СТРАНИЦА УСПЕШНОЙ РЕГИСТРАЦИИ
+     *
+     * Отображает страницу подтверждающую успешную регистрацию пользователя для входа.
+     * Показывает информацию о том, что на указанный email отправлено письмо подтверждения.
+     *
+     * @param email Email зарегистрированного пользователя (передается через flash-атрибут)
+     * @return Имя шаблона "registration/success" или редирект на /register если email отсутствует
+     *
+     * @apiNote GET /registration-success
+     * @see RegistrationController#registerUser(RegistrationRequest, BindingResult, RedirectAttributes)
+     */
     @GetMapping("/registration-success")
     public String registrationSuccessPage(@ModelAttribute("registeredEmail") String email, Model model) {
         if (email == null || email.trim().isEmpty()) {
@@ -145,8 +157,11 @@ public class RegistrationController {
      * Отображает форму входа в систему. Поддерживает параметры для отображения
      * сообщений об ошибках аутентификации и успешного выхода из системы.
      *
-     * @param error Параметр запроса, указывающий на неудачную попытку входа
+     * @param error Параметр запроса, указывающий на неудачную попытку входа.
+     *              Может иметь значения: "notVerified" (email не подтвержден),
+     *              "badCredentials" (неверный email или пароль)
      * @param logout Параметр запроса, указывающий на успешный выход из системы
+     * @param email Параметр запроса, email пользователя для логирования неудачных попыток входа
      * @param model Модель Spring MVC для передачи данных в Thymeleaf шаблон
      * @return Имя шаблона Thymeleaf: "registration/login"
      *

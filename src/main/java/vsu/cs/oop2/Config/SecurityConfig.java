@@ -8,38 +8,41 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
-import vsu.cs.oop2.Exceptions.UserNotFoundException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * КОНФИГУРАЦИЯ БЕЗОПАСНОСТИ ПРИЛОЖЕНИЯ
- * Основной класс конфигурации Spring Security, определяющий:
- * 1. Правила доступа к HTTP-эндпоинтам
- * 2. Механизм аутентификации (форма входа)
- * 3. Механизм выхода (logout)
- * 4. Защиту от CSRF-атак
- * 5. Кодировщик паролей
- * @Configuration - помечает класс как источник конфигурационных бинов Spring
- * @EnableWebSecurity - активирует настройку веб-безопасности Spring Security
+ * КОНФИГУРАЦИЯ БЕЗОПАСНОСТИ SPRING SECURITY
+ *
+ * Основные функции:
+ * 1. Настройка правил доступа к URL
+ * 2. Конфигурация формы входа/выхода
+ * 3. Настройка обработки ошибок аутентификации
+ * 4. Определение кодировщика паролей
+ *
+ * @Configuration Помечает класс как источник конфигурационных бинов
+ * @EnableWebSecurity Активирует настройку веб-безопасности
  */
 @Configuration
 @EnableWebSecurity
 @Slf4j
 public class SecurityConfig {
     /**
-     * БИН ДЛЯ КОДИРОВАНИЯ ПАРОЛЕЙ
-     * Создает и регистрирует компонент PasswordEncoder, который используется для:
-     * - Хеширования паролей при регистрации пользователей
-     * - Сравнения введенного пароля с хешем из базы данных при аутентификации
-     * @return Экземпляр BCryptPasswordEncoder для хеширования паролей
+     * КОДИРОВЩИК ПАРОЛЕЙ
+     *
+     * Использует алгоритм BCrypt для хеширования паролей.
+     * Применяется при:
+     * - Регистрации новых пользователей
+     * - Проверке пароля при входе
+     * - Смене пароля
+     *
+     * @return BCryptPasswordEncoder для безопасного хранения паролей
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -48,16 +51,19 @@ public class SecurityConfig {
 
     /**
      * ОСНОВНАЯ ЦЕПОЧКА ФИЛЬТРОВ БЕЗОПАСНОСТИ
-     * Конфигурирует поведение безопасности для HTTP-запросов.
-     * Определяет, какие URL доступны анонимно, а какие требуют аутентификации,
-     * настраивает форму входа и выхода, защиту от CSRF.
-     * ТЕКУЩАЯ КОНФИГУРАЦИЯ:
-     * - Все запросы разрешены без аутентификации (anyRequest().permitAll()), так как отрабатывают темплейты
-     * - Включена кастомная форма входа (/login)
-     * - Настроен механизм выхода (/logout)
-     * - Включена защита от CSRF-атак с настройками по умолчанию
+     *
+     * Определяет политику безопасности для всех HTTP-запросов:
+     * - Разграничение доступа по URL
+     * - Настройка формы аутентификации
+     * - Конфигурация выхода из системы
+     * - Защита от CSRF-атак
+     *
+     * Правила доступа:
+     * - /admin/** : только для пользователей с ролью ADMIN
+     * - Все остальные URL : доступны без аутентификации
+     *
      * @param http Объект для настройки веб-безопасности
-     * @return Сконфигурированная цепочка фильтров SecurityFilterChain
+     * @return Настроенная цепочка фильтров безопасности
      * @throws Exception При ошибках конфигурации
      */
     @Bean
@@ -86,6 +92,20 @@ public class SecurityConfig {
         return http.build();
     }
 
+
+    /**
+     * ОБРАБОТЧИК ОШИБОК АУТЕНТИФИКАЦИИ
+     *
+     * Кастомный обработчик для перенаправления пользователя
+     * на страницу входа с соответствующим сообщением об ошибке.
+     *
+     * Обрабатываемые ошибки:
+     * - Неподтвержденный email (DisabledException)
+     * - Неверные учетные данные (BadCredentialsException)
+     * - Пользователь не найден (UsernameNotFoundException)
+     *
+     * @return AuthenticationFailureHandler с логикой обработки ошибок
+     */
     @Bean
     public AuthenticationFailureHandler authenticationFailureHandler() {
         return ((request, response, exception) -> {
@@ -107,6 +127,17 @@ public class SecurityConfig {
         });
     }
 
+
+    /**
+     * ПОИСК КОРНЕВОЙ ПРИЧИНЫ ИСКЛЮЧЕНИЯ
+     *
+     * Вспомогательный метод для получения исходной причины исключения.
+     * Позволяет обрабатывать вложенные исключения, которые могут быть
+     * обернуты в другие исключения Spring Security.
+     *
+     * @param throwable Исходное исключение
+     * @return Корневое исключение (самая глубокая причина)
+     */
     private Throwable getRootCause(Throwable throwable) {
         Throwable cause = throwable;
         while(cause.getCause() != null) {

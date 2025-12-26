@@ -2,7 +2,6 @@ package vsu.cs.oop2.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,8 +22,6 @@ import vsu.cs.oop2.Services.UserService;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -39,8 +36,9 @@ import java.util.stream.Collectors;
  * Все методы требуют аутентификации пользователя.
  * Все ответы возвращаются в формате ApiResponse<T>.
  *
- * @author vsu.cs.oop2
- * @version 1.0
+ * @RestController Автоматически сериализует объекты в JSON
+ * @RequestMapping("/api") Все эндпоинты начинаются с /api
+ * @PreAuthorize("isAuthenticated()") Требует аутентификации для всех методов
  */
 @RestController
 @RequestMapping("/api")
@@ -50,52 +48,37 @@ import java.util.stream.Collectors;
 public class API {
     /**
      * СЕРВИС ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ
-     * Предоставляет методы для:
-     * - Получения пользователей по email
-     * - Аутентификации пользователей
-     * - Регистрации новых пользователей
-     * Используется для идентификации текущего пользователя в запросах.
+     * Используется для идентификации текущего пользователя по email из Principal.
      */
     private final UserService userService;
 
-
     /**
      * СЕРВИС ДЛЯ РАБОТЫ С ЛАЙКАМИ
-     * Обрабатывает операции связанные с лайками:
-     * - Добавление/удаление лайков
-     * - Проверка существования лайков
-     * - Получение списка лайкнутых треков
-     * Хранит связи между пользователями и лайкнутыми треками.
+     * Обрабатывает операции добавления/удаления лайков к трекам.
      */
     private final LikeService likeService;
 
-
     /**
      * СЕРВИС ДЛЯ РАБОТЫ С ТРЕКАМИ
-     * <p>
-     * Основной сервис для операций с музыкальными треками:
-     * - Получение треков по ID, жанру, пользователю
-     * - Сохранение новых треков
-     * - Удаление треков
-     * - Валидация аудиофайлов и изображений
-     * - Управление файлами на диске
+     * Основной сервис для операций с музыкальными треками.
      */
     private final TrackService trackService;
 
 
     /**
      * ПЕРЕКЛЮЧЕНИЕ ЛАЙКА/ДИЗЛАЙКА ТРЕКА
-     * <p>
-     * Добавляет или удаляет лайк пользователя для указанного трека.
-     * Если лайк не существует - добавляет, если существует - удаляет.
      *
-     * @param trackId   ID трека для лайка (из пути URL)
-     * @param principal Авторизованный пользователь (Spring Security)
-     * @return ApiResponse<LikeData> с результатом операции и статусом лайка
-     * @throws ResourceNotFoundException если трек не найден
-     * @throws UserNotFoundException     если пользователь не найден
-     * @apiNote POST /api/like/{trackId}
-     * @security Требуется аутентификация (@PreAuthorize)
+     * Добавляет лайк, если его нет, или удаляет, если уже существует.
+     * Используется для реализации функционала "лайк/дизлайк".
+     *
+     * @param trackId ID трека для лайка
+     * @param principal Текущий аутентифицированный пользователь
+     * @return ApiResponse с данными о лайке (статус liked: true/false)
+     *
+     * @throws ResourceNotFoundException Если трек не найден
+     * @throws UserNotFoundException Если пользователь не найден
+     *
+     * Пример: POST /api/like/123
      */
     @PostMapping("/like/{trackId}")
     public ApiResponse<LikeData> toggleLike(@PathVariable Long trackId, Principal principal) {
@@ -118,17 +101,18 @@ public class API {
 
     /**
      * СКАЧИВАНИЕ АУДИОФАЙЛА ТРЕКА
-     * <p>
-     * Отдает аудиофайл трека для скачивания
+     *
+     * Отдает аудиофайл трека для скачивания через браузер.
      * Файл отправляется с заголовком Content-Disposition для скачивания.
      *
-     * @param trackID   ID трека для скачивания (из пути URL)
-     * @param principal Авторизованный пользователь (Spring Security)
-     * @return ResponseEntity<Resource> файл для скачивания
-     * @throws ResourceNotFoundException если файл трека не найден на сервере
-     * @throws IOException               при ошибках чтения файла
-     * @apiNote POST /api/download/{trackID}
-     * @security Требуется аутентификация (@PreAuthorize)
+     * @param trackID ID трека для скачивания
+     * @param principal Текущий аутентифицированный пользователь
+     * @return ResponseEntity с файлом для скачивания
+     *
+     * @throws ResourceNotFoundException Если файл трека не найден
+     * @throws IOException При ошибках чтения файла
+     *
+     * Пример: POST /api/download/123
      */
     @PostMapping("/download/{trackID}")
     public ResponseEntity<Resource> download(@PathVariable Long trackID, Principal principal) throws IOException {
@@ -148,18 +132,19 @@ public class API {
 
     /**
      * УДАЛЕНИЕ ТРЕКА
-     * <p>
-     * Удаляет трек из системы. Доступно только владельцу трека.
-     * Удаляет как запись из БД, так и физические файлы (аудио и обложку).
      *
-     * @param trackId   ID трека для удаления (из пути URL)
-     * @param principal Авторизованный пользователь (Spring Security)
-     * @return ApiResponse<Void> с сообщением об успешном удалении
-     * @throws AccessDeniedException     если пользователь не является владельцем трека
-     * @throws ResourceNotFoundException если трек не найден
-     * @throws IOException               при ошибках удаления файлов
-     * @apiNote DELETE /api/delete/{trackId}
-     * @security Требуется аутентификация (@PreAuthorize)
+     * Полностью удаляет трек из системы: файлы с диска и запись из БД.
+     * Только владелец трека может его удалить.
+     *
+     * @param trackId ID удаляемого трека
+     * @param principal Текущий аутентифицированный пользователь
+     * @return ApiResponse с сообщением об успешном удалении
+     *
+     * @throws AccessDeniedException Если пользователь не владелец трека
+     * @throws ResourceNotFoundException Если трек не найден
+     * @throws IOException При ошибках удаления файлов
+     *
+     * Пример: DELETE /api/delete/123
      */
     @DeleteMapping("/delete/{trackId}")
     public ApiResponse<Void> delete(@PathVariable Long trackId, Principal principal) throws IOException {
@@ -175,21 +160,22 @@ public class API {
 
     /**
      * ЗАГРУЗКА НОВОГО ТРЕКА
-     * <p>
-     * Загружает новый трек в систему. Принимает метаданные трека и два файла:
-     * аудиофайл и изображение-обложку.
+     *
+     * Загружает новый трек в систему с аудиофайлом и обложкой.
+     * Выполняет валидацию файлов и сохраняет их на диск.
      *
      * @param trackName Название трека (обязательно)
-     * @param artist    Исполнитель (обязательно)
-     * @param genre     Жанр (обязательно)
-     * @param trackFile Аудиофайл (обязательно, поддерживаемые форматы: MP3, WAV, M4A, FLAC)
-     * @param imageFile Изображение-обложка (обязательно, поддерживаемые форматы: JPG, JPEG, PNG, GIF, WebP)
-     * @param principal Авторизованный пользователь (Spring Security)
-     * @return ApiResponse<UploadData> с данными загруженного трека
-     * @throws ValidationException при ошибках валидации входных данных
-     * @throws IOException         при ошибках сохранения файлов
-     * @apiNote POST /api/upload
-     * @security Требуется аутентификация (@PreAuthorize)
+     * @param artist Исполнитель (может быть пустым)
+     * @param genre Жанр (обязательно)
+     * @param trackFile Аудиофайл (MP3, WAV, M4A, FLAC)
+     * @param imageFile Изображение-обложка (JPG, PNG, GIF, WebP)
+     * @param principal Текущий аутентифицированный пользователь
+     * @return ApiResponse с данными загруженного трека
+     *
+     * @throws ValidationException При ошибках валидации
+     * @throws IOException При ошибках сохранения файлов
+     *
+     * Пример: POST /api/upload (multipart/form-data)
      */
     @PostMapping("/upload")
     public ApiResponse<UploadData> upload(

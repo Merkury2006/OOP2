@@ -19,29 +19,56 @@ import lombok.NoArgsConstructor;
  *
  * @apiNote Составной ключ через связи, а не через @IdClass/@EmbeddedId
  * @see vsu.cs.oop2.Services.LikeService
+ * @see vsu.cs.oop2.DTO.LikeData
  */
 @Entity
-@Table(name = "likes")
+@Table(name = "likes", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "track_id"}))
 @Data
 @NoArgsConstructor
 public class Like {
+    /**
+     * Уникальный идентификатор лайка (суррогатный ключ).
+     * Используется для:
+     * - Упрощения работы с JPA (не требуется составной ключ)
+     * - Ссылок в API
+     *
+     * Стратегия генерации: IDENTITY (автоинкремент в БД)
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Ключ (опционально, можно было использовать составной)
+    @Column(name = "id", updatable = false, nullable = false)
+    private Long id;
 
-    @ManyToOne
+
+    /**
+     * Пользователь, поставивший лайк.
+     * Связь ManyToOne: один пользователь → много лайков.
+     *
+     * Ограничения:
+     * - NOT NULL: лайк всегда должен иметь автора
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Пользователь, поставивший лайк
+    private User user;
 
-    @ManyToOne
+
+    /**
+     * Трек, который был лайкнут.
+     * Связь ManyToOne: один трек → много лайков.
+     *
+     * Ограничения:
+     * - NOT NULL: лайк всегда должен относиться к треку
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "track_id", nullable = false)
-    private Track track;  // Трек, который лайкнули
+    private Track track;
 
 
 
     /**
-     * КОНСТРУКТОР ДЛЯ СОЗДАНИЯ СВЯЗИ
-     *
+     * КОНСТРУКТОР ДЛЯ СОЗДАНИЯ СВЯЗИ ЛАЙКА
+     * Автоматически устанавливает:
+     * - Связи с пользователем и треком
      * @param user Пользователь, ставящий лайк
      * @param track Трек, который лайкают
      */

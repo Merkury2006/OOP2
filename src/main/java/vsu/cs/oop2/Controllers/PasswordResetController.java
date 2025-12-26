@@ -23,13 +23,25 @@ import java.io.UnsupportedEncodingException;
 import static vsu.cs.oop2.Utils.getMailServiceName;
 import static vsu.cs.oop2.Utils.getMailServiceUrl;
 
+/**
+ * Контроллер для управления восстановлением пароля пользователей.
+ * Обрабатывает запросы на сброс пароля, включая отправку email с токеном
+ * и установку нового пароля по токену.
+ */
 @Controller
 @RequestMapping("/password")
 @RequiredArgsConstructor
 @Slf4j
 public class PasswordResetController {
+    /** Сервис для операций по сбросу пароля */
     private final PasswordResetService resetService;
 
+    /**
+     * Отображает страницу запроса восстановления пароля.
+     *
+     * @param model Модель для передачи данных в представление
+     * @return Имя шаблона страницы восстановления пароля
+     */
     @GetMapping("/forgot")
     public String forgotPasswordPage(Model model) {
         if (!model.containsAttribute("passwordResetRequest")) {
@@ -38,6 +50,25 @@ public class PasswordResetController {
         return "resetPassword/forgot";
     }
 
+
+    /**
+     * Обрабатывает POST-запрос на восстановление пароля.
+     * Отправляет email с ссылкой для сброса пароля на указанный адрес.
+     *
+     * @param request DTO с email пользователя
+     * @param result Результат валидации данных формы
+     * @param attributes Атрибуты для передачи данных при редиректе
+     * @return Перенаправление на страницу запроса с результатом операции
+     *
+     * @throws UserNotFoundException Если пользователь с указанным email не найден
+     * @throws EmailNotVerifiedException Если email пользователя не подтвержден
+     * @throws TooManyRequestsException Если превышено количество запросов на сброс пароля
+     * @throws MessagingException При ошибках отправки email через JavaMail
+     * @throws UnsupportedEncodingException При проблемах с кодировкой символов в email
+     *
+     * @see PasswordResetRequest
+     * @see PasswordResetService#sendPasswordResetEmail(String)
+     */
     @PostMapping("/forgot")
     public String forgotPassword(@Valid @ModelAttribute("passwordResetRequest") PasswordResetRequest request,
                                  BindingResult result, RedirectAttributes attributes)  {
@@ -87,6 +118,18 @@ public class PasswordResetController {
         }
     }
 
+    /**
+     * Отображает страницу установки нового пароля по токену.
+     * Валидирует токен перед отображением формы.
+     *
+     * @param token Токен для сброса пароля (из параметра запроса)
+     * @param model Модель для передачи данных в представление
+     * @param attributes Атрибуты для передачи данных при редиректе
+     * @return Имя шаблона страницы сброса пароля или перенаправление при ошибке
+     *
+     * @throws InvalidTokenException Если токен недействителен
+     * @throws TokenExpiredException Если срок действия токена истек
+     */
     @GetMapping("/reset")
     public String resetPasswordPage(@RequestParam("token") String token, Model model, RedirectAttributes attributes) {
         try {
@@ -109,6 +152,21 @@ public class PasswordResetController {
         }
     }
 
+
+    /**
+     * Обрабатывает POST-запрос на установку нового пароля.
+     * Валидирует данные формы и устанавливает новый пароль пользователя.
+     *
+     * @param request DTO с новым паролем и подтверждением
+     * @param result Результат валидации данных формы
+     * @param token Токен для сброса пароля (из параметра запроса)
+     * @param attributes Атрибуты для передачи данных при редиректе
+     * @return Перенаправление на страницу логина с результатом операции
+     *
+     * @throws InvalidTokenException Если токен недействителен
+     * @throws TokenExpiredException Если срок действия токена истек
+     * @throws IllegalArgumentException При других ошибках валидации
+     */
     @PostMapping("/reset")
     public String resetPassword(@Valid @ModelAttribute("newPasswordRequest") NewPasswordRequest request,
                                 BindingResult result, @RequestParam("token") String token, RedirectAttributes attributes) {

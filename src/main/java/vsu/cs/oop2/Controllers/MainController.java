@@ -23,9 +23,6 @@ import java.util.List;
  * - Страница загрузки треков
  *
  * Предоставляет навигацию и отображает пользовательский контент.
- *
- * @author vsu.cs.oop2
- * @version 1.0
  */
 @Controller
 @RequiredArgsConstructor

@@ -21,12 +21,43 @@ import java.io.UnsupportedEncodingException;
 import static vsu.cs.oop2.Utils.getMailServiceName;
 import static vsu.cs.oop2.Utils.getMailServiceUrl;
 
+/**
+ * КОНТРОЛЛЕР ПОДТВЕРЖДЕНИЯ EMAIL
+ *
+ * Обрабатывает операции связанные с подтверждением email пользователей:
+ * - Верификация email по токену
+ * - Повторная отправка email подтверждения
+ * @see EmailVerificationService
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class VerificationEmailController {
+    /**
+     * СЕРВИС ДЛЯ ВЕРИФИКАЦИИ EMAIL
+     * Используется для подтверждения email пользователей
+     * и отправки повторных писем подтверждения.
+     */
     private final EmailVerificationService emailVerificationService;
 
+
+    /**
+     * ПОДТВЕРЖДЕНИЕ EMAIL ПО ТОКЕНУ
+     *
+     * Обрабатывает запрос на подтверждение email по токену из ссылки в письме.
+     * В случае успеха перенаправляет на страницу входа с сообщением об успехе.
+     * В случае ошибки показывает соответствующее сообщение.
+     *
+     * @param token Токен подтверждения email (обязательный параметр)
+     * @param attributes Атрибуты для перенаправления (flash-атрибуты)
+     * @return Редирект на /login с flash-атрибутами результата операции
+     *
+     * @apiNote GET /verify-email?token={токен}
+     * @throws InvalidTokenException если токен недействителен или не найден
+     * @throws TokenExpiredException если срок действия токена истек
+     * @throws AlreadyVerifiedException если email уже был подтвержден ранее
+     * @see EmailVerificationService#verifyEmail(String)
+     */
     @GetMapping("/verify-email")
     public String verifyEmail(@RequestParam String token,  RedirectAttributes attributes) {
         try {
@@ -57,6 +88,17 @@ public class VerificationEmailController {
         return "redirect:/login";
     }
 
+
+
+    /**
+     * СТРАНИЦА ПОВТОРНОЙ ОТПРАВКИ ПОДТВЕРЖДЕНИЯ EMAIL
+     *
+     * Отображает форму для запроса повторной отправки письма подтверждения email.
+     * Если в модели нет атрибута "email", добавляет пустую строку.
+     * @return Имя шаблона Thymeleaf: "emailVerification/resend"
+     *
+     * @apiNote GET /resend-verification
+     */
     @GetMapping("/resend-verification")
     public String resendVerificationPage(Model model) {
         if (!model.containsAttribute("email")) {
@@ -65,6 +107,26 @@ public class VerificationEmailController {
         return "emailVerification/resend";
     }
 
+
+    /**
+     * ОБРАБОТКА ЗАПРОСА ПОВТОРНОЙ ОТПРАВКИ ПОДТВЕРЖДЕНИЯ EMAIL
+     *
+     * Принимает email пользователя и отправляет новое письмо подтверждения.
+     * В случае успеха показывает сообщение об отправке и информацию о почтовом сервисе.
+     * В случае ошибки возвращает на форму с соответствующим сообщением.
+     *
+     * @param email Email пользователя, которому нужно отправить подтверждение (обязательный параметр)
+     * @param attributes Атрибуты для перенаправления (flash-атрибуты)
+     * @return Редирект на /resend-verification или /login в зависимости от результата
+     *
+     * @apiNote POST /resend-verification
+     * @throws UserNotFoundException если пользователь с указанным email не найден
+     * @throws AlreadyVerifiedException если email уже подтвержден
+     * @throws TooManyRequestsException если превышено количество запросов на повторную отправку
+     * @throws MessagingException если возникла ошибка при отправке email
+     * @throws UnsupportedEncodingException если возникла проблема с кодировкой символов в email
+     * @see EmailVerificationService#resendVerificationEmail(String)
+     */
     @PostMapping("/resend-verification")
     public String resendVerification(@RequestParam String email, RedirectAttributes attributes) {
         attributes.addFlashAttribute("email", email);

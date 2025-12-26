@@ -1,12 +1,13 @@
 package vsu.cs.oop2.Services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import vsu.cs.oop2.Config.FilePathResolver;
 import vsu.cs.oop2.DTO.DownloadData;
@@ -19,109 +20,97 @@ import vsu.cs.oop2.Repository.TrackRepository;
 
 import java.io.IOException;
 
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * СЕРВИС ДЛЯ РАБОТЫ С МУЗЫКАЛЬНЫМИ ТРЕКАМИ
+ * ОСНОВНОЙ СЕРВИС ДЛЯ РАБОТЫ С МУЗЫКАЛЬНЫМИ ТРЕКАМИ
  *
- * Основной сервис для управления музыкальными треками:
- * - Загрузка и удаление треков
+ * Предоставляет полный функционал:
+ * - Загрузка треков с валидацией файлов
+ * - Удаление треков с очисткой файлов
  * - Поиск и фильтрация треков
- * - Валидация аудиофайлов и изображений
+ * - Подготовка треков к скачиванию
+ * - Валидация аудио и изображений
  *
- * Интегрирует FileStorageService для работы с файлами на диске.
- *
- * Конфигурация (application.properties):
- * - app.upload.max-audio-size - максимальный размер аудиофайла
- * - app.upload.max-image-size - максимальный размер изображения
- *
- * @apiNote Центральный сервис для всего функционала связанного с треками
- * @see vsu.cs.oop2.Controllers.API
+ * Все операции транзакционные (аннотация @Transactional).
  */
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class TrackService {
+    /**
+     * РЕПОЗИТОРИЙ ДЛЯ РАБОТЫ С ТРЕКАМИ В БАЗЕ ДАННЫХ
+     * Обеспечивает доступ к данным треков:
+     * - Поиск, сохранение, удаление треков
+     * - Специализированные запросы (по жанру, пользователю, поиск)
+     * @see TrackRepository
+     */
     private final TrackRepository trackRepository;
-    private final FileStorageService fileStorageService;
+
+
+    /**
+     * КОМПОНЕНТ ДЛЯ УПРАВЛЕНИЯ ПУТЯМИ К ФАЙЛАМ
+     * Используется для:
+     * - Получения путей к директориям хранения файлов
+     * - Генерации веб-URL для доступа к файлам
+     * - Создания необходимых директорий
+     * @see FilePathResolver
+     */
     private final FilePathResolver filePathResolver;
 
+
+    /**
+     * МАКСИМАЛЬНЫЙ РАЗМЕР АУДИОФАЙЛА
+     * Определяет максимально допустимый размер загружаемого аудиофайла.
+     * @see #validateFile(MultipartFile, String, long)
+     */
     @Value("${app.upload.max-audio-size}")
     private Integer MAX_AUDIO_SIZE;
 
+    /**
+     * МАКСИМАЛЬНЫЙ РАЗМЕР ИЗОБРАЖЕНИЯ
+     * Определяет максимально допустимый размер загружаемого изображения.
+     * @see #validateFile(MultipartFile, String, long)
+     */
     @Value("${app.upload.max-image-size}")
     private Integer MAX_IMAGE_SIZE;
 
 
     /**
-     * ПОЛУЧЕНИЕ ТРЕКОВ ПО ЖАНРУ
-     *
-     * @param genre Название жанра для фильтрации
-     * @return Список треков указанного жанра
-     *
-     * @apiNote Используется на страницах жанров
-     * @see vsu.cs.oop2.Controllers.GenreController
+     * СОХРАНЕНИЕ НОВОГО ТРЕКА
+     * Полный цикл: валидация → генерация имен → сохранение файлов → запись в БД.
      */
-    public List<Track> getTracksByGenre(String genre) {
-        return trackRepository.findByGenre(genre);
+    public Track saveTrack(User user, String trackName, String artist, String genre, MultipartFile trackFile, MultipartFile imageFile) throws IOException {
+        validateFile(trackFile, "audio", MAX_AUDIO_SIZE);
+        validateFile(imageFile, "image", MAX_IMAGE_SIZE);
+
+        String trackFileName = this.generateFileName(trackFile.getOriginalFilename());
+        String imageFileName = this.generateFileName(imageFile.getOriginalFilename());
+
+        this.saveFileToDisk(trackFile, trackFileName, "audio");
+        this.saveFileToDisk(imageFile, imageFileName, "image");
+
+
+        Track track = Track.builder()
+                .trackUrl(filePathResolver.getMusicUrl(trackFileName))
+                .imageUrl(filePathResolver.getImageUrl(imageFileName))
+                .artist(artist)
+                .userAdded(user)
+                .genre(genre)
+                .trackName(trackName)
+                .build();
+
+        return trackRepository.save(track);
     }
-
-
-    /**
-     * ПОЛУЧЕНИЕ ТРЕКА ПО ID
-     *
-     * @param id ID трека
-     * @return Найденный трек
-     * @throws ResourceNotFoundException если трек не найден
-     *
-     * @apiNote Используется во многих местах для получения треков по ID
-     */
-    public Track getTrackById(Long id) {
-        return trackRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Трек", id));
-    }
-
-
-    /**
-     * ПОЛУЧЕНИЕ ТРЕКОВ ПОЛЬЗОВАТЕЛЯ
-     *
-     * @param id ID пользователя
-     * @return Список треков пользователя, отсортированных по ID
-     *
-     * @apiNote Используется на странице загрузки для показа треков пользователя
-     * @see vsu.cs.oop2.Controllers.MainController#uploadPage
-     */
-    public List<Track> getTracksByIdUser(Long id) {
-        return trackRepository.findByUserAddedIdOrderByIdDesc(id);
-    }
-
-
-    /**
-     * ПОЛУЧЕНИЕ ВСЕХ ТРЕКОВ
-     *
-     * @return Список всех треков в системе
-     *
-     * @apiNote Используется на странице "Моя музыка"
-     * @see vsu.cs.oop2.Controllers.MainController#myMusicPage
-     */
-    public List<Track> getAllTracks() {
-        return trackRepository.findAllOrderByIdDesc();
-    }
-
 
     /**
      * УДАЛЕНИЕ ТРЕКА
-     *
-     * Удаляет трек из системы: удаляет файлы с диска и запись из БД.
-     * Использует транзакцию для обеспечения атомарности операции.
-     * @throws IOException при ошибках удаления файлов
-     *
-     * @apiNote Использует FileStorageService для удаления файлов
-     * @see FileStorageService#deleteFile(String, String)
+     * Удаляет файлы с диска и запись из БД.
+     * Только владелец или администратор могут удалить трек.
      */
-    @Transactional
     public Track deleteTrack(Long trackId, User user) throws IOException {
         Track track = getTrackById(trackId);
 
@@ -129,19 +118,17 @@ public class TrackService {
             throw new AccessDeniedException(String.format("Пользователь %s не может удалить трек %s", user.getId(), track.getId()));
         }
 
-        fileStorageService.deleteFile(track.getTrackUrl(), "audio");
-        fileStorageService.deleteFile(track.getImageUrl(), "image");
+        this.deleteFileFromDisk(track.getTrackUrl(), "audio");
+        this.deleteFileFromDisk(track.getImageUrl(), "image");
 
         trackRepository.delete(track);
         return track;
     }
 
-    private boolean canDeleteTrack(Track track, User user) {
-        boolean isOwner = track.getUserIdAdd().equals(user.getId());
-        boolean isAdmin = user.getRole() == UserRole.ADMIN;
-        return isOwner || isAdmin;
-    }
-
+    /**
+     * ПОДГОТОВКА ДАННЫХ ДЛЯ СКАЧИВАНИЯ
+     * Возвращает ресурс файла и его имя для скачивания.
+     */
     public DownloadData downloadTrack(Long trackId) {
         Track track = this.getTrackById(trackId);
 
@@ -150,7 +137,7 @@ public class TrackService {
             url = url.substring(url.lastIndexOf("/") + 1);
         }
 
-        Path filePath = Paths.get(filePathResolver.getResolvedMusicPath()).resolve(url);
+        Path filePath = Paths.get(filePathResolver.getMusicUploadPath()).resolve(url);
 
         Resource resource = new FileSystemResource(filePath);
 
@@ -161,66 +148,52 @@ public class TrackService {
         return new DownloadData(resource, track.getTrackName());
     }
 
+    /**
+     * СОХРАНЕНИЕ ФАЙЛА НА ДИСК
+     */
+    private void saveFileToDisk(MultipartFile file, String fileName, String type) throws IOException {
+        String uploadPath = type.equals("audio") ? filePathResolver.getMusicUploadPath() : filePathResolver.getImageUploadPath();
+        Path filePath = Paths.get(uploadPath, fileName);
+        Files.createDirectories(filePath.getParent());
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+    }
 
     /**
-     * СОХРАНЕНИЕ НОВОГО ТРЕКА
-     *
-     * Основной метод для загрузки треков:
-     * 1. Валидация файлов
-     * 2. Сохранение файлов на диск
-     * 3. Создание записи в БД
-     *
-     * @param user Пользователь, загружающий трек
-     * @param trackName Название трека
-     * @param artist Исполнитель
-     * @param genre Жанр
-     * @param trackFile Аудиофайл
-     * @param imageFile Изображение-обложка
-     * @return Сохраненный трек
-     * @throws IOException при ошибках сохранения файлов
-     * @throws IllegalArgumentException при ошибках валидации
-     *
-     * @apiNote Комплексная операция с валидацией и сохранением файлов
-     * @see #validateFile(MultipartFile, String, long)
+     * УДАЛЕНИЕ ФАЙЛА С ДИСКА
      */
-    public Track saveTrack(User user, String trackName, String artist, String genre, MultipartFile trackFile, MultipartFile imageFile) throws IOException {
-        validateFile(trackFile, "audio", MAX_AUDIO_SIZE);
-        validateFile(imageFile, "image", MAX_IMAGE_SIZE);
+    public void deleteFileFromDisk(String fileUrl, String type) throws IOException {
+        if (fileUrl == null || fileUrl.trim().isEmpty()) return;
 
-        String trackFileName = fileStorageService.generateFileName(trackFile.getOriginalFilename());
-        String imageFileName = fileStorageService.generateFileName(imageFile.getOriginalFilename());
+        if (fileUrl.contains("/")) {
+            fileUrl = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
+        }
 
-        fileStorageService.saveFile(trackFile, trackFileName, "audio");
-        fileStorageService.saveFile(imageFile, imageFileName, "image");
+        String uploadPath = type.equals("audio") ? filePathResolver.getMusicUploadPath() : filePathResolver.getImageUploadPath();
 
+        Path filePath = Paths.get(uploadPath).resolve(fileUrl);
 
-        Track track = Track.builder()
-                .trackUrl(fileStorageService.getFileUrl(trackFileName, "audio"))
-                .imageUrl(fileStorageService.getFileUrl(imageFileName, "image"))
-                .artist(artist)
-                .userAdded(user)
-                .genre(genre)
-                .trackName(trackName)
-                .build();
-
-        return trackRepository.save(track);
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+            System.out.println("Файл удален: " + filePath);
+        } else {
+            log.error("Файл не найден для удаления: {}", filePath);
+        }
     }
 
 
     /**
-     * ВАЛИДАЦИЯ ЗАГРУЖАЕМОГО ФАЙЛА
-     *
-     * Проверяет файл по нескольким критериям:
-     * - Файл не пустой
-     * - Размер файла не превышает лимит
-     * - Корректный формат (аудио или изображение)
-     *
-     * @param file Файл для валидации
-     * @param type Тип файла: "audio" или "image"
-     * @param maxSize Максимальный разрешенный размер в байтах
-     * @throws ValidationException при нарушении любого из правил валидации
-     *
-     * @apiNote Внутренний вспомогательный метод
+     * ПРОВЕРКА ПРАВ НА УДАЛЕНИЕ ТРЕКА
+     * Владелец или администратор могут удалять.
+     */
+    private boolean canDeleteTrack(Track track, User user) {
+        boolean isOwner = track.getUserIdAdd().equals(user.getId());
+        boolean isAdmin = user.getRole() == UserRole.ADMIN;
+        return isOwner || isAdmin;
+    }
+
+    /**
+     * ВАЛИДАЦИЯ ФАЙЛА
+     * Проверяет: не пустой, размер, формат.
      */
     private void validateFile(MultipartFile file, String type, long maxSize) {
         if (file.isEmpty()) {
@@ -251,14 +224,7 @@ public class TrackService {
 
 
     /**
-     * ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ФАЙЛ АУДИОФАЙЛОМ
-     *
-     * Проверяет по content type и расширению файла.
-     *
-     * @param file Файл для проверки
-     * @return true если файл является аудиофайлом
-     *
-     * @apiNote Внутренний вспомогательный метод
+     * ПРОВЕРКА АУДИОФАЙЛА
      */
     private boolean isAudioFile(MultipartFile file) {
         String contentType = file.getContentType();
@@ -271,14 +237,7 @@ public class TrackService {
 
 
     /**
-     * ПРОВЕРКА ЯВЛЯЕТСЯ ЛИ ФАЙЛ ИЗОБРАЖЕНИЕМ
-     *
-     * Проверяет по content type и расширению файла.
-     *
-     * @param file Файл для проверки
-     * @return true если файл является изображением
-     *
-     * @apiNote Внутренний вспомогательный метод
+     * ПРОВЕРКА ИЗОБРАЖЕНИЯ
      */
     private boolean isImageFile(MultipartFile file) {
         String contentType = file.getContentType();
@@ -290,11 +249,97 @@ public class TrackService {
                 fileName.endsWith(".webp");
     }
 
+    /**
+     * ГЕНЕРАЦИЯ УНИКАЛЬНОГО ИМЕНИ ФАЙЛА
+     * Формат: UUID_originalName
+     */
+    private String generateFileName(String originalFileName) {
+        String name = originalFileName != null ? originalFileName : "file";
+        return UUID.randomUUID() + "_" + name;
+    }
+
+    /**
+     * ПОЛУЧЕНИЕ ТРЕКОВ ПО ЖАНРУ
+     *
+     * Возвращает список треков, принадлежащих указанному жанру.
+     * Используется на страницах жанровой навигации.
+     *
+     * @param genre Название жанра (например: "Рок", "Поп", "Джаз")
+     * @return Список треков указанного жанра, может быть пустым
+     *
+     * @see vsu.cs.oop2.Controllers.GenreController
+     */
+    public List<Track> getTracksByGenre(String genre) {
+        return trackRepository.findByGenre(genre);
+    }
+
+
+    /**
+     * ПОЛУЧЕНИЕ ТРЕКА ПО ИДЕНТИФИКАТОРУ
+     *
+     * Основной метод для получения конкретного трека по ID.
+     * Используется во множестве операций: удаление, скачивание, редактирование.
+     *
+     * @param id Уникальный идентификатор трека в базе данных
+     * @return Найденная сущность Track
+     * @throws ResourceNotFoundException Если трек с указанным ID не найден
+     *
+     * @see #deleteTrack(Long, User)
+     * @see #downloadTrack(Long)
+     */
+    public Track getTrackById(Long id) {
+        return trackRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Трек", id));
+    }
+
+
+    /**
+     * ПОЛУЧЕНИЕ ТРЕКОВ ПОЛЬЗОВАТЕЛЯ
+     *
+     * Возвращает все треки, загруженные конкретным пользователем.
+     * Список отсортирован по ID в порядке убывания (новые треки первыми).
+     *
+     * @param id Идентификатор пользователя
+     * @return Список треков пользователя, отсортированный по убыванию ID
+     *
+     * @see vsu.cs.oop2.Controllers.MainController#uploadPage
+     */
+    public List<Track> getTracksByIdUser(Long id) {
+        return trackRepository.findByUserAddedIdOrderByIdDesc(id);
+    }
+
+
+    /**
+     * ПОЛУЧЕНИЕ ВСЕХ ТРЕКОВ В СИСТЕМЕ
+     * Возвращает полный список всех треков, доступных в приложении.
+     * Сортировка по ID в порядке убывания (новые треки первыми).
+     * @return Все треки системы, отсортированные по убыванию ID
+     */
+    public List<Track> getAllTracks() {
+        return trackRepository.findAllOrderByIdDesc();
+    }
+
+
+    /**
+     * ПОДСЧЕТ ОБЩЕГО КОЛИЧЕСТВА ТРЕКОВ
+     * Возвращает общее количество треков в системе.
+     * Используется для админки
+     * @return Общее количество треков в базе данных
+     */
     public long countAllTracks() {
         return trackRepository.count();
     }
 
+    /**
+     * ПОИСК ТРЕКОВ ПО ТЕКСТУ
+     * Выполняет полнотекстовый поиск по трекам.
+     * Ищет совпадения в названии трека, имени исполнителя, жанре и айди
+     * Поиск регистронезависимый.
+     *
+     * @param search Поисковый запрос (строка для поиска)
+     * @return Список треков, содержащих поисковый запрос в названии или имени исполнителя
+     */
     public List<Track> searchTracks(String search) {
         return trackRepository.searchTracks(search.toLowerCase());
     }
+
 }

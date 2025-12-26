@@ -3,32 +3,51 @@ package vsu.cs.oop2.DTO;
 import lombok.Builder;
 import lombok.Data;
 
-
-
-
 /**
- * ДАННЫЕ ОТВЕТА ДЛЯ ОПЕРАЦИИ ЗАГРУЗКИ ТРЕКА
+ * DTO для передачи информации о загруженном треке.
+ * Используется в ответах API после успешной загрузки аудиофайла.
  *
- * Используется в ApiResponse<UploadData> для эндпоинта /api/upload
- * Содержит полную информацию о загруженном треке.
- *
- * Поля:
- * - trackId: Уникальный идентификатор трека в системе
- * - trackName: Название трека
- * - artist: Исполнитель
- * - trackUrl: URL для доступа к аудиофайлу
- * - imageUrl: URL обложки трека
- * - genre: Музыкальный жанр
+ * Содержит полную информацию о треке, необходимую для:
+ * - Отображения на фронтенде
+ * - Создания ссылок для прослушивания
+ * - Дальнейших операций (редактирование, удаление)
  *
  * @see vsu.cs.oop2.Controllers.API#upload
+ * @see vsu.cs.oop2.Entity.Track
  */
 @Data
 @Builder
 public class UploadData {
+    /**
+     * Уникальный идентификатор созданного трека в системе.
+     * @apiNote Генерируется базой данных при сохранении.
+     *          Гарантированно уникален в системе.
+     */
     private Long trackId;
+
+    /**
+     * Название загруженного трека.
+     */
     private String trackName;
+
+    /**
+     * Исполнитель или группа, создавшая трек.
+     */
     private String artist;
+
+    /**
+     * URL для доступа к аудиофайлу.
+     */
     private String trackUrl;
+
+    /**
+     * URL обложки (изображения) трека.
+     */
     private String imageUrl;
+
+    /**
+     * Музыкальный жанр трека.
+     * Примеры: "Rock", "Pop", "Hip-Hop", "Electronic", "Classical", "Jazz"
+     */
     private String genre;
 }

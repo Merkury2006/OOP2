@@ -141,13 +141,35 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(exception.getMessage(), 400);
     }
 
-
+    /**
+     * ОБРАБОТКА MessagingException (ОШИБКИ ОТПРАВКИ EMAIL)
+     *
+     * Обрабатывает исключения при отправке email через JavaMail.
+     * Возвращает общее сообщение для безопасности (не раскрывает детали SMTP).
+     *
+     * @param exception Исключение MessagingException
+     * @return ApiResponse с HTTP 500 и сообщением об ошибке
+     *
+     * @apiNote HTTP 500 Internal Server Error
+     * @see jakarta.mail.MessagingException
+     */
     @ExceptionHandler(MessagingException.class)
     public ApiResponse<Void> handleMessageException(MessagingException exception) {
         log.warn("Ошибка отправил email: {}", exception.getMessage() );
         return ApiResponse.error(exception.getMessage(), 500);
     }
 
+    /**
+     * ОБРАБОТКА UnsupportedEncodingException (ОШИБКИ КОДИРОВКИ)
+     *
+     * Обрабатывает исключения при работе с неподдерживаемыми кодировками символов.
+     * Часто возникает при отправке email с некорректной кодировкой.
+     *
+     * @param exception Исключение UnsupportedEncodingException
+     * @return ApiResponse с HTTP 500 и сообщением об ошибке
+     *
+     * @apiNote HTTP 500 Internal Server Error
+     */
     @ExceptionHandler(UnsupportedEncodingException.class)
     public ApiResponse<Void> handleEncodeException(UnsupportedEncodingException exception) {
         log.warn("Ошибка кодировки: {}", exception.getMessage() );

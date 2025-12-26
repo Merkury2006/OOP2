@@ -75,10 +75,25 @@ public class LikeService {
         }
     }
 
+
+    /**
+     * ПОЛУЧИТЬ ОБЩЕЕ КОЛИЧЕСТВО ЛАЙКОВ В СИСТЕМЕ
+     * Возвращает общее количество записей в таблице likes.
+     * @return Общее количество лайков в системе
+     */
     public long countAllLikes() {
         return likeRepository.count();
     }
 
+
+    /**
+     * ПОЛУЧИТЬ ВСЕ ЛАЙКИ ДЛЯ УКАЗАННОГО ТРЕКА
+     * Возвращает список всех лайков, поставленных конкретному треку.
+     * @param track Трек, для которого нужно получить лайки
+     * @return Список лайков для указанного трека
+     * @apiNote Возвращаемый список может быть пустым если трек не имеет лайков
+     *          Список содержит полные объекты Like (включая связи User и Track)
+     */
     public List<Like> getTrackLikes(Track track) {
         return likeRepository.findByTrack(track);
     }

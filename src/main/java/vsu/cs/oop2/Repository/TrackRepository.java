@@ -56,9 +56,32 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
      */
     List<Track> findByUserAddedIdOrderByIdDesc(Long id);
 
+
+    /**
+     * НАЙТИ ВСЕ ТРЕКИ В ОБРАТНОМ ПОРЯДКЕ ID (САМЫЕ НОВЫЕ ПЕРВЫМИ)
+     *
+     * Возвращает все треки отсортированные по ID в порядке убывания.
+     * Используется для отображения последних добавленных треков.
+     *
+     * @return Список треков отсортированных по ID в порядке убывания
+     *
+     */
     @Query("SELECT t FROM Track t ORDER BY t.id DESC")
     List<Track> findAllOrderByIdDesc();
 
+
+    /**
+     * ПОИСК ТРЕКОВ ПО РАЗЛИЧНЫМ КРИТЕРИЯМ
+     *
+     * Ищет треки по нескольким полям с регистронезависимым сравнением.
+     * Поиск выполняется по:
+     * - ID трека (приведение к строке)
+     * - Имени исполнителя (artist)
+     * - Жанру (genre)
+     * - Названию трека (trackName)
+     * @param search Строка для поиска
+     * @return Список найденных треков отсортированных по ID DESC
+     */
     @Query("SELECT t FROM Track t WHERE " +
             "CAST(t.id AS string) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(t.artist) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

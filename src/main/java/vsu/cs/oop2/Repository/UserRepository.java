@@ -60,18 +60,75 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     boolean existsByEmail(String email);
 
+
+    /**
+     * НАЙТИ ПОЛЬЗОВАТЕЛЯ ПО ТОКЕНУ ПОДТВЕРЖДЕНИЯ EMAIL
+     *
+     * Используется при верификации email по ссылке с токеном.
+     * Ищет пользователя с указанным токеном подтверждения email.
+     *
+     * @param emailVerificationToken Токен подтверждения email
+     * @return Optional содержащий пользователя или пустой если не найден
+     *
+     * @apiNote Токен должен быть уникальным в системе
+     * @see vsu.cs.oop2.Services.EmailVerificationService#verifyEmail(String)
+     */
     Optional<User> findByEmailVerificationToken(String emailVerificationToken);
 
+
+    /**
+     * НАЙТИ ПОЛЬЗОВАТЕЛЯ ПО ТОКЕНУ ВОССТАНОВЛЕНИЯ ПАРОЛЯ
+     *
+     * Используется при сбросе пароля по ссылке с токеном.
+     * Ищет пользователя с указанным токеном восстановления пароля.
+     *
+     * @param token Токен восстановления пароля
+     * @return Optional содержащий пользователя или пустой если не найден
+     *
+     * @apiNote Токен должен быть уникальным и иметь ограниченный срок действия
+     * @see vsu.cs.oop2.Services.PasswordResetService#resetPassword(String, String)
+     */
     Optional<User> findUserByPasswordResetToken(String token);
 
+
+    /**
+     * ПОДСЧЕТ КОЛИЧЕСТВА ПОДТВЕРЖДЕННЫХ ПОЛЬЗОВАТЕЛЕЙ
+     *
+     * Возвращает количество пользователей с подтвержденным email.
+     *
+     * @return Количество пользователей с подтвержденным email
+     */
     @Query("SELECT count(*) FROM User u WHERE u.emailVerified = true")
     long countByIsEmailVerified();
 
+
+    /**
+     * ПОИСК ПОЛЬЗОВАТЕЛЕЙ ПО РАЗЛИЧНЫМ КРИТЕРИЯМ
+     *
+     * Ищет пользователей по нескольким полям с регистронезависимым сравнением.
+     * Поиск выполняется по:
+     * - Имени пользователя (username)
+     * - Email адресу (email)
+     * - ID пользователя (точное или частичное совпадение с начала)
+     *
+     * @param search Строка для поиска
+     * @return Список найденных пользователей
+     */
     @Query("SELECT u FROM User u WHERE " +
             "LOWER(u.username) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
             "CAST(u.id AS string) LIKE CONCAT(:search, '%')")
     List<User> searchUsers(@Param("search") String search);
 
+
+    /**
+     * НАЙТИ ПОЛЬЗОВАТЕЛЯ ПО ID
+     *
+     * Стандартный метод JPA для поиска пользователя по идентификатору.
+     * Возвращает Optional для безопасной обработки отсутствующего пользователя.
+     *
+     * @param id Уникальный идентификатор пользователя
+     * @return Optional содержащий пользователя или пустой если не найден
+     */
     Optional<User> findUserById(Long id);
 }
