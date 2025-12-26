@@ -83,4 +83,7 @@ src/main/java/vsu/cs/oop2/
 
 
 ## Ссылка на демонстрацию работы (видео)
-https://drive.google.com/file/d/106W-FwAOnu9VUO94qcQVnw5TJ3Je4ewc/view?usp=drive_link
+https://drive.google.com/file/d/1pJRTNtiiJCHx46Hm_QE0mznAqCMxVBWK/view?usp=sharing
+
+## Ссылка на сайт
+http://90.156.170.132:8080
