@@ -80,3 +80,7 @@ src/main/java/vsu/cs/oop2/
 - Интеграция **RabbitMQ/Kafka** для асинхронной обработки
 - Микросервисная архитектура для масштабирования
 - Реализация рекомендательной системы на основе лайков
+
+
+## Ссылка на демонстрацию работы (видео)
+https://drive.google.com/file/d/106W-FwAOnu9VUO94qcQVnw5TJ3Je4ewc/view?usp=drive_link
