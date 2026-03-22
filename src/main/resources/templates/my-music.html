@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<header th:replace="fragments/header :: header(${activePage})"></header>
+
+<div class="container">
+    <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
+
+    <div class="main-genre-music">
+
+        <div th:if="${not isAuthenticated}">
+            <div class="not-logged-in-message">
+                <p>Чтобы добавлять треки в свою музыку, вам нужно
+                    <a href="/login">войти</a> или
+                    <a href="/register">зарегистрироваться</a>
+                </p>
+            </div>
+        </div>
+
+        <div th:if="${isAuthenticated and (likedTrackIds == null or likedTrackIds.isEmpty())}">
+            <div class="not-logged-in-message">
+                <p>У вас нет лайкнутых треков</p>
+            </div>
+        </div>
+
+            <!-- Треки (без лишних div) -->
+        <div th:each="track : ${trackList}"
+             th:if="${isAuthenticated and likedTrackIds != null and likedTrackIds.contains(track.id)}"
+             class="container-sound"
+             th:id="'track-' + ${track.id}">
+
+                    <!-- Вся структура трека -->
+                    <div class="pause-button" style="display:none;">
+                        <div class="rectangle"></div>
+                        <div class="rectangle"></div>
+                    </div>
+                    <div class="play-button">
+                        <div class="triangle"></div>
+                    </div>
+
+                    <img th:src="@{${track.imageUrl}}" alt="Обложка трека" class="image-sound">
+
+                    <div class="all-duration">
+                        <div class="container-duration">
+                            <span class="time current-time">0:00</span>
+                            <div class="main-pain">
+                                <div class="text" th:text="${track.artist} + ' - ' + ${track.trackName}">
+                                    Артист - Название трека
+                                </div>
+                                <audio class="audio-player" th:src="@{${track.trackUrl}}" preload="metadata"></audio>
+                                <div class="progress-container">
+                                    <div class="progress-bar"></div>
+                                    <div class="progress-thumb"></div>
+                                </div>
+                            </div>
+                            <span class="time duration">0:00</span>
+                        </div>
+                    </div>
+
+                    <div class="button-container">
+                        <div class="like-container" th:id="'like-form-' + ${track.id}" th:data-track-id="${track.id}">
+                            <button type="button" class="heart-icon liked">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+
+                        <div class="download-container" th:id="'download-form-' + ${track.id}" th:data-track-id="${track.id}">
+                            <button type="button" class="button-load" onclick="downloadTrack(${track.id})">
+                                <div class="arrow-down"></div>
+                                <div class="line"></div>
+                            </button>
+                        </div>
+                    </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
+</html>

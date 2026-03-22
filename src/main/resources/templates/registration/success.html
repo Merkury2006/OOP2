@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация успешна - Merkury-Music</title>
+    <link rel="icon" th:href="@{/Images/favicon.ico}" type="image/x-icon">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-32x32.png}" sizes="32x32">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-16x16.png}" sizes="16x16">
+    <link rel="stylesheet" th:href="@{/Styles/success.css}">
+</head>
+<body>
+<div class="success-container">
+    <div class="success-icon">📧</div>
+
+    <h1>Регистрация почти завершена!</h1>
+
+    <p>Мы отправили письмо с подтверждением на адрес:</p>
+
+    <div class="email-box" th:text="${email}"></div>
+
+    <div class="instructions">
+        <h3>Что делать дальше:</h3>
+        <ol>
+            <li>Проверьте вашу почту <strong th:text="${email}"></strong></li>
+            <li>Найдите письмо от <strong style="color: #800080;">Merkury-Music</strong></li>
+            <li>Нажмите на кнопку <strong>"Подтвердить Email"</strong> в письме</li>
+            <li>После подтверждения войдите в систему</li>
+        </ol>
+
+        <div class="spam-tip">
+            💡 <strong>Совет:</strong> Если письмо не пришло, проверьте папки "Спам" или "Рассылки"
+        </div>
+    </div>
+
+    <div class="warning">
+        ⚠️ Вы не сможете войти в систему пока не подтвердите email
+    </div>
+
+    <div class="action-buttons">
+        <a th:href="@{/resend-verification}" class="btn btn-secondary">
+            🔄 Отправить повторно
+        </a>
+
+        <!-- Кнопка почты -->
+        <div style="text-align: center;">
+            <a class="btn btn-primary"
+               style="display: inline-block; padding: 10px 20px; background: #800080; color: white;
+                  text-decoration: none; border-radius: 5px; font-weight: bold;"
+               th:href="${mailUrl}"
+               target="_blank">
+                📨 Открыть <span th:text="${mailServiceName}"></span>
+            </a>
+        </div>
+    </div>
+
+    <div class="resend-link">
+        Письмо не пришло в течение 5 минут?
+        <a th:href="@{/resend-verification}">Отправьте повторно</a>
+    </div>
+</div>
+
+<!-- Подключаем общий auth.js -->
+<script th:src="@{/Scripts/auth.js}"></script>
+
+</body>
+</html>

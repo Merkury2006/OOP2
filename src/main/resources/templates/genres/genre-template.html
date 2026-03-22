@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head th:replace="fragments/header :: head"></head>
+<body>
+
+<header th:replace="fragments/header :: header(${activePage})"></header>
+
+<div class="container">
+    <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
+
+    <div class="main-genre-music">
+
+        <div th:each="track : ${trackList}" class="container-sound" th:id="'track-' + ${track.id}">
+            <div class="pause-button" style="display:none;">
+                <div class="rectangle"></div>
+                <div class="rectangle"></div>
+            </div>
+            <div class="play-button">
+                <div class="triangle"></div>
+            </div>
+
+            <img th:src="@{${track.imageUrl}}" alt="Обложка трека" class="image-sound">
+
+            <div class="all-duration">
+                <div class="container-duration">
+                    <span class="time current-time">0:00</span>
+                    <div class="main-pain">
+                        <div class="text" th:text="${track.artist} + ' - ' + ${track.trackName}">Артист - Название трека</div>
+                        <audio class="audio-player" th:src="@{${track.trackUrl}}" preload="metadata"></audio>
+                        <div class="progress-container">
+                            <div class="progress-bar"></div>
+                            <div class="progress-thumb"></div>
+                        </div>
+                    </div>
+                    <span class="time duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <div class="like-container" th:id="'like-form-' + ${track.id}" th:data-track-id="${track.id}">
+                    <button type="button"
+                            class="heart-icon"
+                            th:classappend="(${likedTrackIds != null and likedTrackIds.contains(track.id)} ? 'liked' : '') +
+                       (${not #authorization.expression('isAuthenticated()')} ? ' login-required' : '')">
+                        <i th:class="${likedTrackIds != null and likedTrackIds.contains(track.id)} ?
+                 'fas fa-heart' : 'far fa-heart'"></i>
+                    </button>
+
+                    <!-- Popup для лайков -->
+                    <div sec:authorize="!isAuthenticated()"
+                         class="login-popup like-popup"
+                         th:id="'like-popup-' + ${track.id}"
+                         style="display: none;">
+                        <div class="popup-content">
+                            <p>Для лайка необходимо
+                                <a th:href="@{/login}">войти</a>
+                                или
+                                <a th:href="@{/register}">зарегистрироваться</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-container" th:id="'download-form-' + ${track.id}" th:data-track-id="${track.id}">
+                    <button type="button"
+                            class="button-load"
+                            th:classappend="${not #authorization.expression('isAuthenticated()')} ? 'login-required' : ''">
+                        <div class="arrow-down"></div>
+                        <div class="line"></div>
+                    </button>
+
+                    <!-- Popup для скачивания (используем те же стили что и у лайков) -->
+                    <div sec:authorize="!isAuthenticated()"
+                         class="login-popup download-popup"
+                         th:id="'download-popup-' + ${track.id}"
+                         style="display: none;">
+                        <div class="popup-content">
+                            <p>Для скачивания необходимо
+                                <a th:href="@{/login}">войти</a>
+                                или
+                                <a th:href="@{/register}">зарегистрироваться</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(trackList)}">
+            <p>Треки не найдены.</p>
+        </div>
+    </div>
+
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+

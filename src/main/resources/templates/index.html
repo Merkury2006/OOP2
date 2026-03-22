@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" >
+<head th:replace="fragments/header :: head">
+</head>
+<body>
+
+<header th:replace="fragments/header :: header(${activePage})"></header>
+
+<div class="container">
+  <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
+
+  <div class="main">
+    <div class="head-main">Хотите послушать музыку, которая зарядит Вас энергией на весь день? Ваша любимая музыка уже тут. Слушайте и наслаждайтесь</div>
+
+    <a th:href="@{/pagesMusic/pop}" class="genre-music">
+      <div class="circle" style="background-color: rgb(208, 0, 255);">
+        <div class="text-circle" style="color: black;">Поп-музыка</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/rock}" class="genre-music">
+      <div class="circle" style="background-color: rgb(33, 220, 148);">
+        <div class="text-circle" style="color: black;">Рок-музыка</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/rep}" class="genre-music">
+      <div class="circle" style="background-color: rgb(255, 242, 0);">
+        <div class="text-circle" style="color: black;">Рэп-музыка</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/hip-hop}" class="genre-music">
+      <div class="circle" style="background-color: rgb(94, 255, 0);">
+        <div class="text-circle" style="color: rgb(255, 255, 255);">Хип-хоп</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/electronic}" class="genre-music">
+      <div class="circle" style="background-color: rgb(230, 189, 77);">
+        <div class="text-circle" style="color: black;">Электронная музыка</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/classic}" class="genre-music">
+      <div class="circle" style="background-color: rgb(21, 0, 255);">
+        <div class="text-circle" style="color: rgb(255, 255, 255);">Классика</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/fonk}" class="genre-music">
+      <div class="circle" style="background-color: rgb(255, 0, 0);">
+        <div class="text-circle" style="color: rgb(255, 255, 255);">Фонк</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/jazz}" class="genre-music">
+      <div class="circle" style="background-color: rgb(238, 81, 207);">
+        <div class="text-circle" style="color: black;">Джаз</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+
+    <a th:href="@{/pagesMusic/metall}" class="genre-music">
+      <div class="circle" style="background-color: rgb(149, 78, 20);">
+        <div class="text-circle" style="color: black;">Металл</div>
+      </div>
+      <button class="genre-music-button">Слушать</button>
+    </a>
+  </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+</body>
+</html>

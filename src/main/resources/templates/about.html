@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head">
+
+</head>
+<body>
+
+<header th:replace="fragments/header :: header(${activePage})"></header>
+
+<div class="container">
+
+  <div th:replace="fragments/sidebar :: sidebar(${activePage})"></div>
+
+  <div class="main">
+    <div class="container-us">
+      <img th:src="@{Images/social/Me.jpg}" alt="Фото автора" class="author-photo">
+      <div class="text-us">Здравствуйте! Меня зовут Рома Меркулов, и я автор этого сайта. Я увлекаюсь программированием и спортом, и моя цель — делиться знаниями и опытом с вами.
+        На этом сайте вы можете насладиться музыкой на Ваш вкус.
+        Я всегда открыт для общения, буду рад помочь!
+      </div>
+      <div class="contact">Связаться со мной:</div>
+      <div class="contacts">
+        <a class="link-us" href="https://t.me/Merkuryy111">Telegram: https://t.me/Merkuryy111</a>
+        <a class="link-us" href="https://vk.com/merkury_2006">VK: https://vk.com/merkury_2006</a>
+        <a class="link-us" href="https://wa.me/79622371147">WhatsApp: +7 (962) 237-11-47</a>
+        <a class="link-us" href="mailto:elez123456789@yandex.ru">Почта: elez123456789@yandex.ru</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="fragments/footer :: footer"></footer>
+
+</body>
+</html>

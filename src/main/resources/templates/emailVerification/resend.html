@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Повторная отправка - Merkury-Music</title>
+    <link rel="icon" th:href="@{/Images/favicon.ico}" type="image/x-icon">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-32x32.png}" sizes="32x32">
+    <link rel="icon" type="image/png" th:href="@{/Images/favicon-16x16.png}" sizes="16x16">
+    <link rel="stylesheet" th:href="@{/Styles/auth.css}">
+</head>
+<body>
+<div class="auth-container">
+    <h2>📨 Повторная отправка письма</h2>
+
+    <!-- Успешное сообщение с кнопкой почты -->
+    <div th:if="${success}" class="alert alert-success">
+        <div style="margin-bottom: 10px;">
+            <span th:text="${success}"></span>
+        </div>
+
+        <!-- Кнопка почты -->
+        <div th:if="${mailUrl != null and mailServiceName != null}" style="text-align: center; margin-top: 10px;">
+            <a class="btn"
+               style="display: inline-block; padding: 10px 20px; background: #800080; color: white;
+                  text-decoration: none; border-radius: 5px; font-weight: bold;"
+               th:href="${mailUrl}"
+               target="_blank">
+                📨 Открыть <span th:text="${mailServiceName}"></span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Сообщение "email уже подтвержден" -->
+    <div th:if="${message}" class="alert alert-success">
+        <span th:text="${message}"></span>
+    </div>
+
+    <!-- Ошибка -->
+    <div th:if="${error}" class="alert alert-error">
+        <span th:text="${error}"></span>
+    </div>
+
+    <div class="info-box">
+        <span class="info-icon">💡</span>
+        Введите email, указанный при регистрации
+    </div>
+
+    <form th:action="@{/resend-verification}" method="post" class="auth-form">
+        <div class="form-group">
+            <input type="email" id="email" name="email"
+                   th:value="${email != null ? email : ''}"
+                   placeholder="example@email.com" required>
+        </div>
+
+        <input type="submit" value="Отправить письмо повторно">
+    </form>
+
+    <div class="auth-links">
+        <a href="/login">Войти</a> |
+        <a href="/register">Регистрация</a> |
+        <a href="/">Главная</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<footer th:fragment="footer">
+    <div class="footer-container">
+        <p>&copy; 2025 Merkury-Music. Все права защищены.</p>
+        <div class="social-icons">
+            <a href="https://t.me/Merkuryy111"><img th:src="@{/Images/social/telegram.png}" alt="Telegram"></a>
+            <a href="https://vk.com/merkury_2006"><img th:src="@{/Images/social/wk.png}" alt="VK"></a>
+            <a href="https://wa.me/79622371147"><img th:src="@{/Images/social/whatsapp.png}" alt="WhatsApp"></a>
+            <a href="mailto:elez123456789@yandex.ru"><img th:src="@{/Images/social/mail.png}" alt="Email"></a>
+        </div>
+    </div>
+    <div class="cookie-settings">
+        <button id="enable-cookies">Включить Cookies</button>
+        <button id="disable-cookies">Выключить Cookies</button>
+    </div>
+
+    <script th:src="@{/Scripts/like_track.js}"></script>
+    <script th:src="@{/Scripts/play_track.js}"></script>
+    <script th:src="@{/Scripts/download_track.js}"></script>
+    <script th:src="@{/Scripts/cookies.js}"></script>
+    <script th:src="@{/Scripts/popup-utils.js}"></script>
+    <script th:src="@{/js/admin-search.js}"></script>
+</footer>
